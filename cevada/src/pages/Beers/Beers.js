@@ -3,22 +3,12 @@ import Button from '../../components/common/Button';
 import GenericTable from '../../components/common/GenericTable';
 
 const Beers = () => {
-  const colunas = [
-    { header: 'Nome', accessor: 'nome' },
-    { header: 'Estilo', accessor: 'estilo' },
-    { header: 'ABV', accessor: 'abv' }
-  ];
-
-  const dados = [
-    { nome: 'Cevada Lager', estilo: 'Lager', abv: '4.5%' },
-    { nome: 'Cevada IPA', estilo: 'IPA', abv: '6.5%' }
-  ];
-
   return (
-    <div className="container">
-      <h1>Gerenciar Cervejas (CRUD 1)</h1>
-      <Button className="mb-2">Adicionar Nova</Button>
-      <GenericTable columns={colunas} data={dados} onEdit={() => {}} onDelete={() => {}} />
+    <div className="container" style={{ padding: '50px 20px', textAlign: 'center' }}>
+      <h1 style={{ color: 'white' }}>Gerenciar Cervejas (CRUD)</h1>
+      <p style={{ color: 'white', marginTop: '20px' }}>
+        Espaço reservado para o Integrante responsável pelo CRUD de Cervejas.
+      </p>
     </div>
   );
 };

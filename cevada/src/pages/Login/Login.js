@@ -12,51 +12,60 @@ const Login = () => {
   const { login } = useAuth();
   const navigate = useNavigate();
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     if (!email || !password) {
       setError('Por favor, preencha todos os campos.');
       return;
     }
 
-    const success = login(email, password);
+    const success = await login(email, password);
     if (success) {
       navigate('/dashboard');
     } else {
-      setError('Erro ao fazer login.');
+      setError('Erro ao fazer login. Verifique suas credenciais.');
     }
   };
 
   return (
-    <div className="login-container">
-      <div className="glass-card login-card">
-        <h2>Entrar na <span>Cevada</span></h2>
-        <p>Acesse o painel administrativo</p>
-
+    <div className="login-page">
+      <div id="form">
         <form onSubmit={handleSubmit}>
-          {error && <p className="error-msg">{error}</p>}
+          <h2 className="titulo">Adquira a sua</h2>
           
-          <InputField 
-            label="E-mail"
-            type="email"
-            name="email"
-            placeholder="seu@email.com"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-          />
+          {error && <p style={{ color: 'red', marginBottom: '10px', fontSize: '0.8em' }}>{error}</p>}
 
-          <InputField 
-            label="Senha"
-            type="password"
-            name="password"
-            placeholder="••••••••"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-          />
+          <label htmlFor="email">Email</label>
+          <div className="input">
+            <i className="fa-solid fa-envelope"></i>
+            <input 
+              id="email" 
+              name="email" 
+              placeholder="insira seu email" 
+              type="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              required
+            />
+          </div>
 
-          <Button type="submit" className="btn-full">
-            Entrar
-          </Button>
+          <label htmlFor="password">Senha</label>
+          <div className="input">
+            <i className="fa-solid fa-lock"></i>
+            <input 
+              id="password" 
+              name="password" 
+              placeholder="••••••••" 
+              type="password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              required
+            />
+          </div>
+
+          <div id="btn">
+            <button type="submit">Entrar</button>
+          </div>
         </form>
       </div>
     </div>

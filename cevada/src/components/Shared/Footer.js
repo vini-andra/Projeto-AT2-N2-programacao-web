@@ -3,11 +3,8 @@ import './Footer.css';
 
 const Footer = () => {
   return (
-    <footer className="footer">
-      <div className="container">
-        <p>&copy; 2026 Cervejaria Cevada. Todos os direitos reservados.</p>
-        <p>Desenvolvido para Avaliação N2 - React</p>
-      </div>
+    <footer className="text-fot">
+      <p>&copy; {new Date().getFullYear()} Cevada. Criado e desenvolvido por Cevada Design Gráfico @</p>
     </footer>
   );
 };

@@ -2,22 +2,12 @@ import React from 'react';
 import GenericTable from '../../components/common/GenericTable';
 
 const Reports = () => {
-  const colunas = [
-    { header: 'Produto', accessor: 'produto' },
-    { header: 'Categoria', accessor: 'categoria' },
-    { header: 'Estoque', accessor: 'estoque' }
-  ];
-
-  const dadosJoin = [
-    { produto: 'Cevada Lager', categoria: 'Pilsen', estoque: '50' },
-    { produto: 'Cevada IPA', categoria: 'Artesanal', estoque: '20' }
-  ];
-
   return (
-    <div className="container">
-      <h1>Relatório Geral (JOIN)</h1>
-      <p>Simulação de cruzamento entre Cervejas e Categorias</p>
-      <GenericTable columns={colunas} data={dadosJoin} />
+    <div className="container" style={{ padding: '50px 20px', textAlign: 'center' }}>
+      <h1 style={{ color: 'white' }}>Relatório com JOIN</h1>
+      <p style={{ color: 'white', marginTop: '20px' }}>
+        Espaço reservado para o Integrante responsável pelo Relatório com JOIN.
+      </p>
     </div>
   );
 };

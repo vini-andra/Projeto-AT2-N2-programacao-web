@@ -3,10 +3,12 @@ import { Routes, Route } from 'react-router-dom';
 import Home from '../pages/Home/Home';
 import Login from '../pages/Login/Login';
 import Dashboard from '../pages/Dashboard/Dashboard';
-import Beers from '../pages/Beers/Beers';
+import Users from '../pages/Users/Users';
 import Categories from '../pages/Categories/Categories';
-import Suppliers from '../pages/Suppliers/Suppliers';
+import Products from '../pages/Products/Products';
 import Reports from '../pages/Reports/Reports';
+import About from '../pages/About/About';
+import Contact from '../pages/Contact/Contact';
 import ProtectedRoute from './ProtectedRoute';
 import Layout from '../components/Layout/Layout';
 
@@ -16,6 +18,8 @@ const AppRouter = () => {
       <Routes>
         <Route path="/" element={<Home />} />
         <Route path="/login" element={<Login />} />
+        <Route path="/sobre" element={<About />} />
+        <Route path="/contatos" element={<Contact />} />
         
         {/* Protected Routes */}
         <Route 
@@ -27,10 +31,10 @@ const AppRouter = () => {
           } 
         />
         <Route 
-          path="/cervejas" 
+          path="/usuarios" 
           element={
             <ProtectedRoute>
-              <Beers />
+              <Users />
             </ProtectedRoute>
           } 
         />
@@ -43,15 +47,15 @@ const AppRouter = () => {
           } 
         />
         <Route 
-          path="/fornecedores" 
+          path="/produtos" 
           element={
             <ProtectedRoute>
-              <Suppliers />
+              <Products />
             </ProtectedRoute>
           } 
         />
         <Route 
-          path="/relatorios" 
+          path="/relatorio" 
           element={
             <ProtectedRoute>
               <Reports />

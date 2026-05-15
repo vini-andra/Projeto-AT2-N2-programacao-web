@@ -22,39 +22,18 @@ const Dashboard = () => {
   ];
 
   return (
-    <div className="dashboard-container container">
-      <header className="dashboard-header">
-        <h1>Painel de <span>Administração</span></h1>
-        <p>Bem-vindo de volta, <strong>{user?.name}</strong>!</p>
+    <div className="dashboard-container container" style={{ paddingTop: '50px' }}>
+      <header className="dashboard-header" style={{ marginBottom: '40px', textAlign: 'center' }}>
+        <h1 style={{ fontSize: '3em', fontWeight: '700' }}>Painel de <span style={{ color: 'var(--cevada-orange)' }}>Administração</span></h1>
+        <p style={{ fontSize: '1.2em' }}>Bem-vindo de volta, <strong>{user?.name}</strong>!</p>
       </header>
 
-      <div className="dashboard-grid">
-        <div className="glass-card stat-card">
-          <h4>Total de Cervejas</h4>
-          <span className="stat-value">{dadosCervejas.length}</span>
-        </div>
-        <div className="glass-card stat-card">
-          <h4>Fornecedores</h4>
-          <span className="stat-value">12</span>
-        </div>
-        <div className="glass-card stat-card">
-          <h4>Pedidos Hoje</h4>
-          <span className="stat-value">08</span>
-        </div>
-      </div>
-
-      <section className="dashboard-section">
-        <h2>Gerenciamento de Cervejas</h2>
-        <div className="section-actions">
-          <Button variant="primary">Nova Cerveja</Button>
-        </div>
-        
-        <GenericTable 
-          columns={colunasCervejas} 
-          data={dadosCervejas} 
-          onEdit={(item) => console.log('Editando', item)}
-          onDelete={(item) => console.log('Excluindo', item)}
-        />
+      <section className="dashboard-content" style={{ textAlign: 'center', padding: '100px 20px', background: 'rgba(255,255,255,0.1)', borderRadius: '20px' }}>
+        <h2 style={{ color: '#fff' }}>Estrutura Base Pronta</h2>
+        <p style={{ color: '#fff', marginTop: '20px' }}>
+          Este é o espaço reservado para os CRUDs e Relatórios que serão <br />
+          desenvolvidos pelos outros integrantes do grupo.
+        </p>
       </section>
     </div>
   );
