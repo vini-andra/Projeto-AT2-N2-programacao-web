@@ -1,25 +1,9 @@
 import React from 'react';
 import { useAuth } from '../../context/AuthContext';
-import Button from '../../components/common/Button';
-import GenericTable from '../../components/common/GenericTable';
 import './Dashboard.css';
 
 const Dashboard = () => {
   const { user } = useAuth();
-
-  // Exemplo de dados para a tabela
-  const colunasCervejas = [
-    { header: 'Nome', accessor: 'nome' },
-    { header: 'Tipo', accessor: 'tipo' },
-    { header: 'Preço', accessor: 'preco' },
-    { header: 'Estoque', accessor: 'estoque' }
-  ];
-
-  const dadosCervejas = [
-    { nome: 'Cevada Golden', tipo: 'Pilsen', preco: 'R$ 12,00', estoque: '50 un' },
-    { nome: 'Amber Ale', tipo: 'Red Ale', preco: 'R$ 15,00', estoque: '30 un' },
-    { nome: 'IPA Turbo', tipo: 'IPA', preco: 'R$ 18,00', estoque: '20 un' }
-  ];
 
   return (
     <div className="dashboard-container container" style={{ paddingTop: '50px' }}>
