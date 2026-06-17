@@ -1,0 +1,287 @@
+/* src/pages/Reports/Reports.css */
+
+/* ============================================
+   ESTILOS DO RELATÓRIO COM JOIN
+   Segue o padrão visual do projeto Cevada
+   (dark theme, glassmorphism, amber accents)
+   ============================================ */
+
+/* Container principal */
+.reports-container {
+  padding: 40px 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+/* ---- Cabeçalho ---- */
+.reports-header {
+  margin-bottom: 8px;
+}
+
+.reports-header h1 {
+  font-size: 2.2rem;
+  font-weight: 700;
+  color: #fff;
+  margin-bottom: 8px;
+}
+
+.reports-header .highlight {
+  color: var(--primary-color);
+}
+
+.reports-subtitle {
+  color: var(--text-muted);
+  font-size: 0.95rem;
+}
+
+.reports-subtitle code {
+  background: rgba(243, 156, 18, 0.15);
+  color: var(--primary-color);
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-size: 0.85rem;
+}
+
+/* ---- Cards de Estatísticas ---- */
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 16px;
+}
+
+.stats-grid .stat-card {
+  text-align: center;
+  padding: 20px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.stats-grid .stat-card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
+}
+
+.stat-label {
+  color: var(--text-muted);
+  font-size: 0.8rem;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  font-weight: 500;
+}
+
+.stats-grid .stat-value {
+  font-size: 1.8rem;
+  font-weight: 800;
+  color: var(--primary-color);
+  line-height: 1;
+}
+
+/* ---- Seção de Filtros ---- */
+.filters-section {
+  padding: 24px;
+}
+
+.filters-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.filters-header h3 {
+  font-size: 1.1rem;
+  color: #fff;
+  font-weight: 600;
+}
+
+.btn-limpar {
+  background: rgba(231, 76, 60, 0.15);
+  color: var(--danger);
+  border: 1px solid rgba(231, 76, 60, 0.3);
+  padding: 6px 16px;
+  border-radius: 6px;
+  font-size: 0.8rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.btn-limpar:hover {
+  background: rgba(231, 76, 60, 0.25);
+  border-color: var(--danger);
+}
+
+.filters-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 16px;
+}
+
+.filter-group {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.filter-group label {
+  color: var(--text-muted);
+  font-size: 0.85rem;
+  font-weight: 500;
+}
+
+.filter-group input,
+.filter-group .select-field {
+  padding: 10px 12px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid var(--glass-border);
+  border-radius: 8px;
+  color: white;
+  font-size: 0.9rem;
+  transition: border-color 0.3s ease, box-shadow 0.3s ease;
+}
+
+.filter-group input:focus,
+.filter-group .select-field:focus {
+  outline: none;
+  border-color: var(--primary-color);
+  box-shadow: 0 0 0 2px rgba(243, 156, 18, 0.2);
+}
+
+.filter-group input::placeholder {
+  color: rgba(189, 195, 199, 0.5);
+}
+
+/* ---- Indicador de Resultados ---- */
+.results-info {
+  color: var(--text-muted);
+  font-size: 0.9rem;
+  padding: 4px 0;
+}
+
+.results-info strong {
+  color: var(--primary-color);
+}
+
+/* ---- Estado Vazio ---- */
+.empty-state {
+  text-align: center;
+  padding: 60px 30px;
+}
+
+.empty-icon {
+  font-size: 3rem;
+  display: block;
+  margin-bottom: 16px;
+}
+
+.empty-state h3 {
+  font-size: 1.3rem;
+  color: #fff;
+  margin-bottom: 12px;
+}
+
+.empty-state p {
+  color: var(--text-muted);
+  max-width: 500px;
+  margin: 0 auto;
+  line-height: 1.6;
+}
+
+.empty-state strong {
+  color: var(--primary-color);
+}
+
+/* ---- Explicação Técnica do JOIN ---- */
+.join-explanation {
+  padding: 28px;
+  margin-top: 8px;
+}
+
+.join-explanation h3 {
+  color: #fff;
+  font-size: 1.1rem;
+  margin-bottom: 20px;
+  font-weight: 600;
+}
+
+.explanation-content {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.explanation-step {
+  display: flex;
+  gap: 16px;
+  align-items: flex-start;
+}
+
+.step-number {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 32px;
+  height: 32px;
+  background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+  color: white;
+  border-radius: 50%;
+  font-weight: 700;
+  font-size: 0.85rem;
+  flex-shrink: 0;
+}
+
+.explanation-step strong {
+  color: #fff;
+  font-size: 0.95rem;
+  display: block;
+  margin-bottom: 4px;
+}
+
+.explanation-step p {
+  color: var(--text-muted);
+  font-size: 0.85rem;
+  line-height: 1.5;
+  margin: 0;
+}
+
+.explanation-step code {
+  background: rgba(243, 156, 18, 0.15);
+  color: var(--primary-color);
+  padding: 1px 5px;
+  border-radius: 3px;
+  font-size: 0.8rem;
+}
+
+/* ---- Responsividade ---- */
+@media (max-width: 768px) {
+  .reports-header h1 {
+    font-size: 1.6rem;
+  }
+
+  .stats-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .filters-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .filters-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+  }
+}
+
+@media (max-width: 480px) {
+  .stats-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .reports-container {
+    padding: 24px 12px;
+  }
+}
