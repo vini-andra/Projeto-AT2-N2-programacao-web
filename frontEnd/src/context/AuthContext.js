@@ -10,15 +10,23 @@ import { loginUser } from '../services/api';
 
 const AuthContext = createContext();
 
+// ============================================
+// Detecta se o Firebase está configurado
+// Se REACT_APP_FIREBASE_API_KEY estiver vazio, ativa modo mock
+// ============================================
+const isFirebaseConfigured = !!process.env.REACT_APP_FIREBASE_API_KEY;
+
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
 
   const handleLogout = async () => {
-    try {
-      await signOut(auth);
-    } catch (err) {
-      console.error("SignOut error:", err);
+    if (isFirebaseConfigured) {
+      try {
+        await signOut(auth);
+      } catch (err) {
+        console.error("SignOut error:", err);
+      }
     }
     setUser(null);
     localStorage.removeItem('cevada_user');
@@ -29,6 +37,19 @@ export const AuthProvider = ({ children }) => {
     const savedUser = localStorage.getItem('cevada_user');
     if (savedUser) {
       setUser(JSON.parse(savedUser));
+    }
+
+    // ============================================
+    // MODO MOCK: Firebase não configurado
+    // Permite testar o frontend sem backend/Firebase
+    // ============================================
+    if (!isFirebaseConfigured) {
+      console.warn(
+        '⚠️ Firebase não configurado (.env ausente ou REACT_APP_FIREBASE_API_KEY vazio).\n' +
+        '   Rodando em MODO MOCK — qualquer e-mail/senha será aceito para teste.'
+      );
+      setLoading(false);
+      return; // sem cleanup necessário
     }
     
     // 2. Synchronize with Firebase Auth state
@@ -61,6 +82,23 @@ export const AuthProvider = ({ children }) => {
   }, []);
 
   const login = async (email, password) => {
+    // ============================================
+    // MODO MOCK: aceita qualquer credencial
+    // ============================================
+    if (!isFirebaseConfigured) {
+      console.warn('🔓 Login MOCK: autenticando como', email);
+      const mockUser = {
+        id: 'mock-user-1',
+        email: email,
+        nome: email.split('@')[0],
+        role: 'admin',
+        status: 'ativo',
+      };
+      setUser(mockUser);
+      localStorage.setItem('cevada_user', JSON.stringify(mockUser));
+      return { success: true };
+    }
+
     // Firebase requires at least 6 characters. If user enters less (like '1234' for tests),
     // we pad it with '0' to satisfy Firebase while keeping the exact test credentials.
     const firebasePassword = password.length < 6 ? password.padEnd(6, '0') : password;

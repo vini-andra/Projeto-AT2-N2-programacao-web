@@ -23,10 +23,26 @@ const firebaseConfig = {
   measurementId: process.env.REACT_APP_FIREBASE_MEASUREMENT_ID,
 };
 
-// Inicializa a aplicação Firebase
-const app = initializeApp(firebaseConfig);
+// ============================================
+// Inicialização condicional do Firebase
+// Se a API key não estiver definida (.env ausente), NÃO inicializa
+// para evitar crash — o app roda em modo mock via AuthContext
+// ============================================
+let app = null;
+let auth = null;
+let db = null;
 
-// Exporta instâncias para uso no frontend
-export const auth = getAuth(app);
-export const db = getFirestore(app);
+if (process.env.REACT_APP_FIREBASE_API_KEY) {
+  app = initializeApp(firebaseConfig);
+  auth = getAuth(app);
+  db = getFirestore(app);
+} else {
+  console.warn(
+    '⚠️ Firebase NÃO inicializado: REACT_APP_FIREBASE_API_KEY não encontrado.\n' +
+    '   Crie o arquivo .env baseado no .env.example para ativar o Firebase.'
+  );
+}
+
+// Exporta instâncias para uso no frontend (podem ser null em modo mock)
+export { auth, db };
 export default app;
