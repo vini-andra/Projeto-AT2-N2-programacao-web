@@ -78,7 +78,6 @@ body::before {
 }
 
 .cabecalho-img {
-    height: 50px;
     display: flex;
     align-items: center;
 }

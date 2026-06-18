@@ -1,4 +1,7 @@
 import React from 'react';
+import pilsenImg from '../../assets/beer_pilsen.png';
+import tripelImg from '../../assets/beer_tripel.png';
+import weizenImg from '../../assets/beer_weizen.png';
 
 const About = () => {
   return (
@@ -15,7 +18,7 @@ const About = () => {
               além da cor dourada vibrante.
             </p>
           </div>
-          <div className="content-right" style={{ flex: 1, fontSize: '15em', textAlign: 'center' }}>🍺</div>
+          <div className="content-right" style={{ flex: 1, textAlign: 'center' }}><img src={pilsenImg} alt="Cerveja Pilsen" style={{ maxWidth: '100%', height: 'auto', maxHeight: '400px', borderRadius: '40px', border: '5px solid var(--cevada-amber)', objectFit: 'contain' }} /></div>
         </div>
       </section>
 
@@ -40,7 +43,7 @@ const About = () => {
               Uma cerveja forte, cremosa e inesquecível.
             </p>
           </div>
-          <div className="content-right" style={{ flex: 1, fontSize: '15em', textAlign: 'center' }}>🌿</div>
+          <div className="content-right" style={{ flex: 1, textAlign: 'center' }}><img src={tripelImg} alt="Cerveja Tripel" style={{ maxWidth: '100%', height: 'auto', maxHeight: '400px', borderRadius: '40px', border: '5px solid var(--cevada-emerald)', objectFit: 'contain' }} /></div>
         </div>
       </section>
 
@@ -65,7 +68,7 @@ const About = () => {
               A Blue Dark é refrescante e moderada.
             </p>
           </div>
-          <div className="content-right" style={{ flex: 1, fontSize: '15em', textAlign: 'center' }}>❄️</div>
+          <div className="content-right" style={{ flex: 1, textAlign: 'center' }}><img src={weizenImg} alt="Cerveja Weizenbier" style={{ maxWidth: '100%', height: 'auto', maxHeight: '400px', borderRadius: '40px', border: '5px solid var(--cevada-midnight)', objectFit: 'contain' }} /></div>
         </div>
       </section>
     </div>

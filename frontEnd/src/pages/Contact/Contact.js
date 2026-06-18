@@ -21,8 +21,8 @@ const Contact = () => {
         </div>
 
         <section className="text-cont" style={{ margin: '0 auto', textAlign: 'center' }}>
-          <a className="cabecalho-txt-it" href="https://www.instagram.com/cevada_beer/" style={{ fontSize: '1.8em', display: 'block', marginBottom: '20px', color: 'var(--cevada-white)', textDecoration: 'none' }}>INSTAGRAM</a> 
-          <a className="cabecalho-txt-it" href="https://wa.me/5561983731359" style={{ fontSize: '1.8em', display: 'block', color: 'var(--cevada-white)', textDecoration: 'none' }}>WHATSAPP</a> 
+          <a className="cabecalho-txt-it" href="" style={{ fontSize: '1.8em', display: 'block', marginBottom: '20px', color: 'var(--cevada-white)', textDecoration: 'none' }}>INSTAGRAM</a> 
+          <a className="cabecalho-txt-it" href="" style={{ fontSize: '1.8em', display: 'block', color: 'var(--cevada-white)', textDecoration: 'none' }}>WHATSAPP</a> 
         </section>
       </div>
     </div>
