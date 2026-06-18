@@ -26,6 +26,7 @@ const {
 // Lança erro se Firebase estiver indisponível (frontend trata com fallback)
 // ============================================
 const fetchAll = async (collectionName) => {
+  if (!db) throw new Error("Firebase não está configurado (faltam credenciais).");
   try {
     // Busca todos os documentos da coleção no Firestore
     const snapshot = await getDocs(collection(db, collectionName));
@@ -51,6 +52,7 @@ const fetchAll = async (collectionName) => {
 // Lança erro se Firebase estiver indisponível
 // ============================================
 const createItem = async (collectionName, item) => {
+  if (!db) throw new Error("Firebase não está configurado (faltam credenciais).");
   try {
     // Adiciona o documento ao Firestore
     const docRef = await addDoc(collection(db, collectionName), item);
@@ -77,6 +79,7 @@ const createItem = async (collectionName, item) => {
 // Lança erro se Firebase estiver indisponível
 // ============================================
 const updateItem = async (collectionName, id, updatedFields) => {
+  if (!db) throw new Error("Firebase não está configurado (faltam credenciais).");
   try {
     // Atualiza apenas os campos especificados (merge, não sobrescreve tudo)
     await updateDoc(doc(db, collectionName, id), updatedFields);
@@ -98,6 +101,7 @@ const updateItem = async (collectionName, id, updatedFields) => {
 // Lança erro se Firebase estiver indisponível
 // ============================================
 const deleteItem = async (collectionName, id) => {
+  if (!db) throw new Error("Firebase não está configurado (faltam credenciais).");
   try {
     // Deleta o documento do Firestore
     await deleteDoc(doc(db, collectionName, id));

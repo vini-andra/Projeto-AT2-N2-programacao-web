@@ -32,6 +32,7 @@ const Users = () => {
   const [errors, setErrors] = useState({});
   const [deleteModal, setDeleteModal] = useState({ open: false, item: null });
   const [aviso, setAviso] = useState(''); // Aviso de modo offline
+  const [isLoaded, setIsLoaded] = useState(false);
 
   // ==========================================
   // 2️⃣ CARREGAMENTO INICIAL — Backend first, localStorage fallback
@@ -58,6 +59,8 @@ const Users = () => {
           setUsuarios(JSON.parse(saved));
         }
         setAviso('⚠️ Modo offline — dados carregados do cache local');
+      } finally {
+        setIsLoaded(true);
       }
     };
 
@@ -69,10 +72,10 @@ const Users = () => {
   // Garante que o cache local está sempre atualizado como redundância
   // ==========================================
   useEffect(() => {
-    if (usuarios.length > 0 || localStorage.getItem(STORAGE_KEY)) {
+    if (isLoaded) {
       localStorage.setItem(STORAGE_KEY, JSON.stringify(usuarios));
     }
-  }, [usuarios]);
+  }, [usuarios, isLoaded]);
 
   // ==========================================
   // 4️⃣ VALIDAÇÃO — Campos obrigatórios + regex de email

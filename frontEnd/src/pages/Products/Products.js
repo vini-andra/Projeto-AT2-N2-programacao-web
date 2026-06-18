@@ -56,6 +56,7 @@ const Products = () => {
   const [errors, setErrors] = useState({});
   const [deleteModal, setDeleteModal] = useState({ open: false, item: null });
   const [aviso, setAviso] = useState('');
+  const [isLoaded, setIsLoaded] = useState(false);
 
   // ==========================================
   // 5️⃣ CARREGAMENTO INICIAL — Backend first, localStorage fallback
@@ -108,6 +109,8 @@ const Products = () => {
         console.warn('[Products] Usando usuários do localStorage:', error.message);
         const saved = localStorage.getItem(USUARIOS_KEY);
         if (saved) setUsuarios(JSON.parse(saved));
+      } finally {
+        setIsLoaded(true);
       }
     };
 
@@ -118,10 +121,10 @@ const Products = () => {
   // 6️⃣ SINCRONIZAÇÃO — Atualiza localStorage como redundância
   // ==========================================
   useEffect(() => {
-    if (produtos.length > 0 || localStorage.getItem(STORAGE_KEY)) {
+    if (isLoaded) {
       localStorage.setItem(STORAGE_KEY, JSON.stringify(produtos));
     }
-  }, [produtos]);
+  }, [produtos, isLoaded]);
 
   // ==========================================
   // 7️⃣ RECARREGAR DADOS EXTERNOS — Para refresh dos selects

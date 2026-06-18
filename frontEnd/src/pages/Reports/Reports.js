@@ -375,46 +375,6 @@ const Reports = () => {
         </div>
       )}
 
-      {/* ---- EXPLICAÇÃO TÉCNICA DO JOIN ---- */}
-      <div className="join-explanation glass-card">
-        <h3>💡 Como funciona o JOIN neste relatório</h3>
-        <div className="explanation-content">
-          <div className="explanation-step">
-            <span className="step-number">1</span>
-            <div>
-              <strong>Carregamento dos dados</strong>
-              <p>
-                Os dados de Produtos, Categorias e Usuários são buscados do{' '}
-                <strong>Firebase Firestore via backend Express</strong>. Se o
-                backend estiver offline, o <code>localStorage</code> é usado
-                como cache de redundância.
-              </p>
-            </div>
-          </div>
-          <div className="explanation-step">
-            <span className="step-number">2</span>
-            <div>
-              <strong>JOIN com map() + find()</strong>
-              <p>
-                Para cada produto, usamos <code>find()</code> para buscar a
-                Categoria pelo <code>categoriaId</code> e o Usuário pelo{' '}
-                <code>usuarioId</code>, resolvendo as chaves estrangeiras.
-              </p>
-            </div>
-          </div>
-          <div className="explanation-step">
-            <span className="step-number">3</span>
-            <div>
-              <strong>Exibição combinada</strong>
-              <p>
-                O resultado é uma tabela unificada mostrando o nome do produto,
-                preço, nome da categoria e quem cadastrou — dados de 3 entidades
-                em uma única visualização.
-              </p>
-            </div>
-          </div>
-        </div>
-      </div>
     </div>
   );
 };
