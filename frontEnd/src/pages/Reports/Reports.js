@@ -1,10 +1,10 @@
 // ============================================
-// RELATÓRIO COM JOIN — Integrante 6
-// 
+// RELATÓRIO COM JOIN — Arquitetura de 3 Camadas
+//
 // Este componente implementa o relatório que combina dados de três entidades:
-//   - Produtos (cevada_produtos)
-//   - Categorias (cevada_categorias)
-//   - Usuários (cevada_usuarios)
+//   - Produtos (coleção 'produtos' no Firestore)
+//   - Categorias (coleção 'categorias' no Firestore)
+//   - Usuários (coleção 'usuarios' no Firestore)
 //
 // O JOIN é feito em JavaScript puro usando map() + find(),
 // simulando o comportamento de um JOIN SQL entre tabelas relacionadas.
@@ -12,15 +12,20 @@
 // Relacionamentos (chaves estrangeiras):
 //   Produto.categoriaId → Categoria.id
 //   Produto.usuarioId   → Usuário.id
+//
+// Fluxo de dados:
+//   1. Busca as 3 entidades do backend (Express → Firestore)
+//   2. Se o backend estiver offline, usa localStorage como fallback
+//   3. localStorage é sincronizado como redundância/cache
 // ============================================
 
 import React, { useState, useEffect, useMemo } from 'react';
 import GenericTable from '../../components/common/GenericTable';
+import { apiGetAll } from '../../services/api';
 import './Reports.css';
 
 // ============================================
-// CHAVES DO LOCALSTORAGE — Combinado do grupo
-// Devem ser idênticas às usadas nos CRUDs de cada entidade
+// CHAVES DO LOCALSTORAGE — Redundância/cache
 // ============================================
 const PRODUTOS_KEY = 'cevada_produtos';
 const CATEGORIAS_KEY = 'cevada_categorias';
@@ -30,21 +35,6 @@ const USUARIOS_KEY = 'cevada_usuarios';
 // FUNÇÕES AUXILIARES DE DADOS
 // Separam a lógica de dados da lógica de renderização
 // ============================================
-
-/**
- * carregarDoLocalStorage — Lê e parseia dados do localStorage
- * @param {string} chave — chave do localStorage
- * @returns {Array} — array de objetos ou array vazio se não existir
- */
-const carregarDoLocalStorage = (chave) => {
-  try {
-    const dados = localStorage.getItem(chave);
-    return dados ? JSON.parse(dados) : [];
-  } catch (erro) {
-    console.error(`[Relatório] Erro ao carregar "${chave}" do localStorage:`, erro);
-    return [];
-  }
-};
 
 /**
  * resolverNomeCategoria — Resolve o nome da categoria a partir do categoriaId
@@ -134,11 +124,72 @@ const Reports = () => {
   const [precoMin, setPrecoMin] = useState('');
   const [precoMax, setPrecoMax] = useState('');
 
-  // ---- Carregar dados do localStorage ao montar o componente ----
+  // ---- Estado de aviso offline ----
+  const [aviso, setAviso] = useState('');
+
+  // ============================================
+  // CARREGAMENTO INICIAL — Backend first, localStorage fallback
+  // Busca as 3 entidades do backend (Express → Firestore)
+  // Se falhar, carrega do localStorage (cache/redundância)
+  // ============================================
   useEffect(() => {
-    setProdutos(carregarDoLocalStorage(PRODUTOS_KEY));
-    setCategorias(carregarDoLocalStorage(CATEGORIAS_KEY));
-    setUsuarios(carregarDoLocalStorage(USUARIOS_KEY));
+    const carregarDados = async () => {
+      let usouFallback = false;
+
+      // --- Produtos ---
+      try {
+        const response = await apiGetAll('produtos');
+        if (response.success) {
+          setProdutos(response.data);
+          localStorage.setItem(PRODUTOS_KEY, JSON.stringify(response.data));
+        } else {
+          throw new Error(response.message);
+        }
+      } catch (error) {
+        console.warn('[Reports] Usando produtos do localStorage:', error.message);
+        const saved = localStorage.getItem(PRODUTOS_KEY);
+        if (saved) setProdutos(JSON.parse(saved));
+        usouFallback = true;
+      }
+
+      // --- Categorias ---
+      try {
+        const response = await apiGetAll('categorias');
+        if (response.success) {
+          setCategorias(response.data);
+          localStorage.setItem(CATEGORIAS_KEY, JSON.stringify(response.data));
+        } else {
+          throw new Error(response.message);
+        }
+      } catch (error) {
+        console.warn('[Reports] Usando categorias do localStorage:', error.message);
+        const saved = localStorage.getItem(CATEGORIAS_KEY);
+        if (saved) setCategorias(JSON.parse(saved));
+        usouFallback = true;
+      }
+
+      // --- Usuários ---
+      try {
+        const response = await apiGetAll('usuarios');
+        if (response.success) {
+          setUsuarios(response.data);
+          localStorage.setItem(USUARIOS_KEY, JSON.stringify(response.data));
+        } else {
+          throw new Error(response.message);
+        }
+      } catch (error) {
+        console.warn('[Reports] Usando usuários do localStorage:', error.message);
+        const saved = localStorage.getItem(USUARIOS_KEY);
+        if (saved) setUsuarios(JSON.parse(saved));
+        usouFallback = true;
+      }
+
+      if (usouFallback) {
+        setAviso('⚠️ Alguns dados foram carregados do cache local (backend indisponível)');
+      }
+    };
+
+    carregarDados();
   }, []);
 
   // ============================================
@@ -190,7 +241,7 @@ const Reports = () => {
   const temFiltrosAtivos = filtroCategoria || precoMin || precoMax;
 
   // ============================================
-  // RENDER — Separação clara entre lógica e visual
+  // RENDER
   // ============================================
   return (
     <div className="container reports-container">
@@ -204,6 +255,21 @@ const Reports = () => {
           <code>map()</code> + <code>find()</code>
         </p>
       </div>
+
+      {/* Aviso de modo offline */}
+      {aviso && (
+        <div style={{
+          background: 'rgba(197, 160, 89, 0.2)',
+          border: '1px solid var(--cevada-amber, #C5A059)',
+          borderRadius: '10px',
+          padding: '12px 20px',
+          marginBottom: '20px',
+          color: 'var(--cevada-amber, #C5A059)',
+          fontSize: '0.9em'
+        }}>
+          {aviso}
+        </div>
+      )}
 
       {/* ---- CARDS DE ESTATÍSTICAS ---- */}
       <div className="stats-grid">
@@ -318,8 +384,10 @@ const Reports = () => {
             <div>
               <strong>Carregamento dos dados</strong>
               <p>
-                Os dados de Produtos, Categorias e Usuários são carregados do{' '}
-                <code>localStorage</code> usando as chaves combinadas pelo grupo.
+                Os dados de Produtos, Categorias e Usuários são buscados do{' '}
+                <strong>Firebase Firestore via backend Express</strong>. Se o
+                backend estiver offline, o <code>localStorage</code> é usado
+                como cache de redundância.
               </p>
             </div>
           </div>
