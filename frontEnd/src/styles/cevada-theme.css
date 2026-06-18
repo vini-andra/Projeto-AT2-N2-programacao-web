@@ -106,9 +106,11 @@ body::before {
 
 .inicio {
     display: flex;
-    flex-direction: column;
-    align-items: flex-start; /* Alinhado à esquerda para seguir o texto */
-    max-width: 900px;
+    flex-direction: row;
+    align-items: center;
+    justify-content: center;
+    gap: 60px;
+    max-width: 1200px;
     width: 100%;
     margin-top: 50px;
 }
@@ -123,12 +125,12 @@ body::before {
 .inicio-txt {
     font-family: 'Alata', sans-serif;
     text-align: left;
-    margin-top: -20px; /* Puxa o texto para cima, perto da logo */
-    font-size: 100px; /* Texto maior */
+    margin-top: 0; 
+    font-size: 80px; 
     color: #fff;
     font-weight: 600;
-    line-height: 0.9;
-    letter-spacing: -4px;
+    line-height: 1.1;
+    letter-spacing: -1px;
 }
 
 /* Outros */

@@ -16,7 +16,7 @@ const Navbar = () => {
     <header className="cabecalho">
       <div className="cabecalho-img">
         <Link to="/">
-          <img src={logo} alt="Cevada Logo" style={{ height: '50px', objectFit: 'contain' }} />
+          <img src={logo} alt="Cevada Logo" style={{ height: '80px', objectFit: 'contain', borderRadius: '10px' }} />
         </Link>
       </div>
       <nav className="cabecalho-txt">
