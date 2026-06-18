@@ -1,0 +1,73 @@
+{
+  "produtos": [
+    {
+      "id": "zye1w32",
+      "nome": "Pilsen (Sol da Tarde)",
+      "preco": 12.9,
+      "categoriaId": "cat1",
+      "usuarioId": "user1",
+      "estilo": "Pilsen",
+      "abv": "4.8%",
+      "descricao": "Aroma e sabor acentuados pelo lúpulo, além da cor dourada.",
+      "imagem": "beer_pilsen.png"
+    },
+    {
+      "id": "jnnhjxq",
+      "nome": "Tripel (Florest)",
+      "preco": 18.9,
+      "categoriaId": "cat1",
+      "usuarioId": "user1",
+      "estilo": "Tripel",
+      "abv": "8.0%",
+      "descricao": "Cor clara, sabor amargo cítrico e aroma frutado com espuma cremosa.",
+      "imagem": "beer_tripel.png"
+    },
+    {
+      "id": "4k4vl4y",
+      "nome": "Weizenbier (Blue Dark)",
+      "preco": 15.9,
+      "categoriaId": "cat1",
+      "usuarioId": "user1",
+      "estilo": "Weizenbier",
+      "abv": "5.5%",
+      "descricao": "Malte de trigo, cor clara opaca e aroma frutado lembrando banana e cravo.",
+      "imagem": "beer_weizen.png"
+    }
+  ],
+  "categorias": [
+    {
+      "id": "cat1",
+      "nome": "Cervejas Artesanais",
+      "descricao": "Cervejas de fabricação própria"
+    },
+    {
+      "id": "cat2",
+      "nome": "Insumos",
+      "descricao": "Ingredientes para produção"
+    }
+  ],
+  "usuarios": [
+    {
+      "id": "user1",
+      "nome": "Administrador Cevada",
+      "email": "admin@cevada.com",
+      "perfil": "Admin",
+      "ativo": true
+    },
+    {
+      "id": "user2",
+      "nome": "Operador Loja",
+      "email": "operador@cevada.com",
+      "perfil": "Operador",
+      "ativo": true
+    }
+  ],
+  "relatorios": [
+    {
+      "id": "rel1",
+      "titulo": "Vendas Janeiro 2026",
+      "totalVendido": 1500.50,
+      "data": "2026-01-31"
+    }
+  ]
+}
