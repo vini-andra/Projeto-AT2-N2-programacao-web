@@ -31,6 +31,7 @@ const Categories = () => {
   const [errors, setErrors] = useState({});
   const [deleteModal, setDeleteModal] = useState({ open: false, item: null });
   const [aviso, setAviso] = useState('');
+  const [isLoaded, setIsLoaded] = useState(false);
 
   // ==========================================
   // 2️⃣ CARREGAMENTO INICIAL — Backend first, localStorage fallback
@@ -54,6 +55,8 @@ const Categories = () => {
           setCategorias(JSON.parse(saved));
         }
         setAviso('⚠️ Modo offline — dados carregados do cache local');
+      } finally {
+        setIsLoaded(true);
       }
     };
 
@@ -64,10 +67,10 @@ const Categories = () => {
   // 3️⃣ SINCRONIZAÇÃO — Atualiza localStorage como redundância
   // ==========================================
   useEffect(() => {
-    if (categorias.length > 0 || localStorage.getItem(STORAGE_KEY)) {
+    if (isLoaded) {
       localStorage.setItem(STORAGE_KEY, JSON.stringify(categorias));
     }
-  }, [categorias]);
+  }, [categorias, isLoaded]);
 
   // ==========================================
   // 4️⃣ VALIDAÇÃO
