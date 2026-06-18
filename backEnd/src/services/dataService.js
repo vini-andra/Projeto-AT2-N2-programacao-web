@@ -4,17 +4,20 @@
 // (usuários, categorias, produtos, etc.)
 // O backend comunica APENAS com Firebase
 // O localStorage como fallback/redundância fica NO FRONTEND (React)
+//
+// NOTA: Convertido de ESM (import/export) para CommonJS (require/module.exports)
+// pois o package.json do backend usa "type": "commonjs"
 // ============================================
 
-import { db } from './firebaseConfig.js';
-import {
+const { db } = require('./firebaseConfig.js');
+const {
   collection,
   getDocs,
   addDoc,
   updateDoc,
   deleteDoc,
   doc
-} from 'firebase/firestore';
+} = require('firebase/firestore');
 
 // ============================================
 // READ — Busca todos os itens de uma coleção no Firebase
@@ -22,7 +25,7 @@ import {
 // Retorna: array de objetos com { id, ...dados }
 // Lança erro se Firebase estiver indisponível (frontend trata com fallback)
 // ============================================
-export const fetchAll = async (collectionName) => {
+const fetchAll = async (collectionName) => {
   try {
     // Busca todos os documentos da coleção no Firestore
     const snapshot = await getDocs(collection(db, collectionName));
@@ -30,7 +33,7 @@ export const fetchAll = async (collectionName) => {
     // Mapeia os documentos para objetos com id e dados
     const data = snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
 
-    console.log(`[dataService] Dados carregados do Firebase: ${collectionName}`);
+    console.log(`[dataService] Dados carregados do Firebase: ${collectionName} (${data.length} itens)`);
     return data;
   } catch (error) {
     // Lança o erro para que o frontend trate com localStorage como fallback
@@ -47,7 +50,7 @@ export const fetchAll = async (collectionName) => {
 // Retorna: objeto criado com { id, ...item }
 // Lança erro se Firebase estiver indisponível
 // ============================================
-export const createItem = async (collectionName, item) => {
+const createItem = async (collectionName, item) => {
   try {
     // Adiciona o documento ao Firestore
     const docRef = await addDoc(collection(db, collectionName), item);
@@ -70,14 +73,16 @@ export const createItem = async (collectionName, item) => {
 //   - collectionName (string) — nome da coleção
 //   - id (string) — ID do documento a atualizar
 //   - updatedFields (object) — campos a atualizar
+// Retorna: objeto com os campos atualizados + id
 // Lança erro se Firebase estiver indisponível
 // ============================================
-export const updateItem = async (collectionName, id, updatedFields) => {
+const updateItem = async (collectionName, id, updatedFields) => {
   try {
     // Atualiza apenas os campos especificados (merge, não sobrescreve tudo)
     await updateDoc(doc(db, collectionName, id), updatedFields);
 
     console.log(`[dataService] Item atualizado em ${collectionName}:`, id);
+    return { id, ...updatedFields };
   } catch (error) {
     // Lança o erro para que o frontend trate apropriadamente
     console.error(`[dataService] Erro ao atualizar item em "${collectionName}":`, error);
@@ -92,7 +97,7 @@ export const updateItem = async (collectionName, id, updatedFields) => {
 //   - id (string) — ID do documento a deletar
 // Lança erro se Firebase estiver indisponível
 // ============================================
-export const deleteItem = async (collectionName, id) => {
+const deleteItem = async (collectionName, id) => {
   try {
     // Deleta o documento do Firestore
     await deleteDoc(doc(db, collectionName, id));
@@ -104,3 +109,5 @@ export const deleteItem = async (collectionName, id) => {
     throw error;
   }
 };
+
+module.exports = { fetchAll, createItem, updateItem, deleteItem };

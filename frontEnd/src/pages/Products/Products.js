@@ -1,29 +1,39 @@
-// INTEGRAÇÃO: Os produtos são salvos em 'cevada_produtos' com o formato:
+// ============================================
+// CRUD de Produtos — Arquitetura de 3 Camadas
+//
+// INTEGRAÇÃO: Os produtos são salvos na coleção 'produtos' do Firestore com o formato:
 // { id, nome, preco, categoriaId, usuarioId }
-// O Integrante 6 pode usar categoriaId e usuarioId para fazer o JOIN no relatório.
-
-// NOTA: Este CRUD depende das chaves 'cevada_categorias' e 'cevada_usuarios' no localStorage.
-// Se mudarem o nome dessas chaves nos CRUDs 1 ou 2, atualizar aqui também!
+// O módulo de Relatório usa categoriaId e usuarioId para fazer o JOIN.
+//
+// Fluxo de dados:
+//   1. React (Apresentação) → Express (Lógica) → Firestore (Dados)
+//   2. Se o backend estiver offline, usa localStorage como fallback
+//   3. localStorage é SEMPRE sincronizado como redundância/cache
+//
+// Coleção Firestore: 'produtos'
+// Chave localStorage: 'cevada_produtos'
+// Dependências: 'cevada_categorias' e 'cevada_usuarios' (para popular selects)
+// ============================================
 
 import React, { useState, useEffect } from 'react';
 import GenericTable from '../../components/common/GenericTable';
 import InputField from '../../components/common/InputField';
 import Button from '../../components/common/Button';
 import Modal from '../../components/common/Modal';
+import { apiGetAll, apiCreate, apiUpdate, apiDelete } from '../../services/api';
 
 // Chaves do localStorage — COMBINADO DO GRUPO
 const STORAGE_KEY = 'cevada_produtos';
 const CATEGORIAS_KEY = 'cevada_categorias';
 const USUARIOS_KEY = 'cevada_usuarios';
 
+const ENTIDADE = 'produtos';
+
 const Products = () => {
   // ==========================================
-  // 1️⃣ ESTADO PRINCIPAL — Lista de produtos (carrega do localStorage)
+  // 1️⃣ ESTADO PRINCIPAL — Lista de produtos
   // ==========================================
-  const [produtos, setProdutos] = useState(() => {
-    const saved = localStorage.getItem(STORAGE_KEY);
-    return saved ? JSON.parse(saved) : [];
-  });
+  const [produtos, setProdutos] = useState([]);
 
   // ==========================================
   // 2️⃣ DADOS DAS OUTRAS ENTIDADES (para popular os selects)
@@ -40,38 +50,108 @@ const Products = () => {
   const [usuarioId, setUsuarioId] = useState('');
 
   // ==========================================
-  // 4️⃣ CONTROLES DE EDIÇÃO, ERROS E MODAL
+  // 4️⃣ CONTROLES DE EDIÇÃO, ERROS, MODAL E AVISO
   // ==========================================
   const [editingId, setEditingId] = useState(null);
   const [errors, setErrors] = useState({});
   const [deleteModal, setDeleteModal] = useState({ open: false, item: null });
+  const [aviso, setAviso] = useState('');
 
   // ==========================================
-  // 5️⃣ EFEITOS — Persistência e carregamento de dados externos
+  // 5️⃣ CARREGAMENTO INICIAL — Backend first, localStorage fallback
+  // Carrega produtos, categorias e usuários do backend
   // ==========================================
-
-  // Salvar produtos no localStorage toda vez que a lista mudar
   useEffect(() => {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(produtos));
-  }, [produtos]);
+    const carregarDados = async () => {
+      // --- Carregar Produtos ---
+      try {
+        const response = await apiGetAll(ENTIDADE);
+        if (response.success) {
+          setProdutos(response.data);
+          localStorage.setItem(STORAGE_KEY, JSON.stringify(response.data));
+          console.log(`[Products] Produtos carregados do Firebase via backend (${response.data.length} itens)`);
+        } else {
+          throw new Error(response.message);
+        }
+      } catch (error) {
+        console.warn('[Products] Backend indisponível para produtos, usando localStorage:', error.message);
+        const saved = localStorage.getItem(STORAGE_KEY);
+        if (saved) setProdutos(JSON.parse(saved));
+        setAviso('⚠️ Modo offline — dados carregados do cache local');
+      }
 
-  // Carregar categorias e usuários do localStorage (dados dos outros CRUDs)
-  // TODO: (VINICIUS) Se quisermos que os selects atualizem em tempo real quando
-  // outro integrante cadastrar dados, podemos usar um intervalo ou Context API.
-  // Por enquanto, carrega uma vez ao montar + sempre que o formulário é aberto.
-  useEffect(() => {
-    carregarDadosExternos();
+      // --- Carregar Categorias (para os selects) ---
+      try {
+        const response = await apiGetAll('categorias');
+        if (response.success) {
+          setCategorias(response.data);
+          localStorage.setItem(CATEGORIAS_KEY, JSON.stringify(response.data));
+        } else {
+          throw new Error(response.message);
+        }
+      } catch (error) {
+        console.warn('[Products] Usando categorias do localStorage:', error.message);
+        const saved = localStorage.getItem(CATEGORIAS_KEY);
+        if (saved) setCategorias(JSON.parse(saved));
+      }
+
+      // --- Carregar Usuários (para os selects) ---
+      try {
+        const response = await apiGetAll('usuarios');
+        if (response.success) {
+          setUsuarios(response.data);
+          localStorage.setItem(USUARIOS_KEY, JSON.stringify(response.data));
+        } else {
+          throw new Error(response.message);
+        }
+      } catch (error) {
+        console.warn('[Products] Usando usuários do localStorage:', error.message);
+        const saved = localStorage.getItem(USUARIOS_KEY);
+        if (saved) setUsuarios(JSON.parse(saved));
+      }
+    };
+
+    carregarDados();
   }, []);
 
-  const carregarDadosExternos = () => {
-    const cats = localStorage.getItem(CATEGORIAS_KEY);
-    const users = localStorage.getItem(USUARIOS_KEY);
-    if (cats) setCategorias(JSON.parse(cats));
-    if (users) setUsuarios(JSON.parse(users));
+  // ==========================================
+  // 6️⃣ SINCRONIZAÇÃO — Atualiza localStorage como redundância
+  // ==========================================
+  useEffect(() => {
+    if (produtos.length > 0 || localStorage.getItem(STORAGE_KEY)) {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(produtos));
+    }
+  }, [produtos]);
+
+  // ==========================================
+  // 7️⃣ RECARREGAR DADOS EXTERNOS — Para refresh dos selects
+  // Tenta backend primeiro, cai no localStorage se falhar
+  // ==========================================
+  const carregarDadosExternos = async () => {
+    try {
+      const [catRes, userRes] = await Promise.all([
+        apiGetAll('categorias'),
+        apiGetAll('usuarios'),
+      ]);
+      if (catRes.success) {
+        setCategorias(catRes.data);
+        localStorage.setItem(CATEGORIAS_KEY, JSON.stringify(catRes.data));
+      }
+      if (userRes.success) {
+        setUsuarios(userRes.data);
+        localStorage.setItem(USUARIOS_KEY, JSON.stringify(userRes.data));
+      }
+    } catch (error) {
+      // Fallback silencioso para localStorage
+      const cats = localStorage.getItem(CATEGORIAS_KEY);
+      const users = localStorage.getItem(USUARIOS_KEY);
+      if (cats) setCategorias(JSON.parse(cats));
+      if (users) setUsuarios(JSON.parse(users));
+    }
   };
 
   // ==========================================
-  // 6️⃣ VALIDAÇÃO — Checa campos obrigatórios
+  // 8️⃣ VALIDAÇÃO — Checa campos obrigatórios
   // ==========================================
   const validate = () => {
     const errs = {};
@@ -92,7 +172,7 @@ const Products = () => {
   };
 
   // ==========================================
-  // 7️⃣ RESET DO FORMULÁRIO
+  // 9️⃣ RESET DO FORMULÁRIO
   // ==========================================
   const resetForm = () => {
     setNome('');
@@ -104,52 +184,72 @@ const Products = () => {
   };
 
   // ==========================================
-  // 8️⃣ SUBMIT — Cria ou atualiza produto
+  // 🔟 SUBMIT — Cria ou atualiza produto (Backend first)
   // ==========================================
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
 
-    // Recarregar dados externos antes de validar (garante selects atualizados)
-    carregarDadosExternos();
+    // Recarregar dados externos antes de validar
+    await carregarDadosExternos();
 
     if (!validate()) return;
 
+    const itemData = {
+      nome: nome.trim(),
+      preco: parseFloat(preco),
+      categoriaId,
+      usuarioId,
+    };
+
     if (editingId) {
-      // UPDATE — Atualiza produto existente
-      setProdutos((current) =>
-        current.map((prod) =>
-          prod.id === editingId
-            ? {
-                ...prod,
-                nome: nome.trim(),
-                preco: parseFloat(preco),
-                categoriaId,
-                usuarioId,
-              }
-            : prod
-        )
-      );
+      // UPDATE
+      try {
+        const response = await apiUpdate(ENTIDADE, editingId, itemData);
+        if (response.success) {
+          setProdutos((current) =>
+            current.map((prod) =>
+              prod.id === editingId ? { ...prod, ...itemData } : prod
+            )
+          );
+          setAviso('');
+        } else {
+          throw new Error(response.message);
+        }
+      } catch (error) {
+        console.warn('[Products] Erro ao atualizar no backend, atualizando localmente:', error.message);
+        setProdutos((current) =>
+          current.map((prod) =>
+            prod.id === editingId ? { ...prod, ...itemData } : prod
+          )
+        );
+        setAviso('⚠️ Atualizado localmente — sincronize quando o servidor voltar');
+      }
     } else {
-      // CREATE — Cadastra novo produto
-      const novoProduto = {
-        id: String(Date.now()),
-        nome: nome.trim(),
-        preco: parseFloat(preco),
-        categoriaId,
-        usuarioId,
-      };
-      setProdutos((current) => [...current, novoProduto]);
+      // CREATE
+      try {
+        const response = await apiCreate(ENTIDADE, itemData);
+        if (response.success) {
+          setProdutos((current) => [...current, response.data]);
+          setAviso('');
+        } else {
+          throw new Error(response.message);
+        }
+      } catch (error) {
+        console.warn('[Products] Erro ao criar no backend, criando localmente:', error.message);
+        const novoProduto = { id: `local_${Date.now()}`, ...itemData };
+        setProdutos((current) => [...current, novoProduto]);
+        setAviso('⚠️ Criado localmente — sincronize quando o servidor voltar');
+      }
     }
 
     resetForm();
   };
 
   // ==========================================
-  // 9️⃣ EDIÇÃO — Preenche formulário com dados existentes
+  // 1️⃣1️⃣ EDIÇÃO — Preenche formulário com dados existentes
   // ==========================================
-  const handleEdit = (item) => {
-    // Recarregar dados externos para garantir que os selects estejam atualizados
-    carregarDadosExternos();
+  const handleEdit = async (item) => {
+    await carregarDadosExternos();
 
     setEditingId(item.id);
     setNome(item.nome);
@@ -164,24 +264,41 @@ const Products = () => {
   };
 
   // ==========================================
-  // 🔟 EXCLUSÃO — Modal de confirmação + remover do estado
+  // 1️⃣2️⃣ EXCLUSÃO — Backend first, localStorage fallback
   // ==========================================
-  const handleConfirmDelete = () => {
+  const handleConfirmDelete = async () => {
     if (!deleteModal.item) return;
 
-    setProdutos((current) =>
-      current.filter((prod) => prod.id !== deleteModal.item.id)
-    );
+    const itemToDelete = deleteModal.item;
+
+    try {
+      const response = await apiDelete(ENTIDADE, itemToDelete.id);
+      if (response.success) {
+        setProdutos((current) =>
+          current.filter((prod) => prod.id !== itemToDelete.id)
+        );
+        setAviso('');
+      } else {
+        throw new Error(response.message);
+      }
+    } catch (error) {
+      console.warn('[Products] Erro ao deletar no backend, removendo localmente:', error.message);
+      setProdutos((current) =>
+        current.filter((prod) => prod.id !== itemToDelete.id)
+      );
+      setAviso('⚠️ Removido localmente — sincronize quando o servidor voltar');
+    }
+
     setDeleteModal({ open: false, item: null });
   };
 
   // ==========================================
-  // 1️⃣1️⃣ PREPARAÇÃO DOS DADOS PARA A TABELA
+  // 1️⃣3️⃣ PREPARAÇÃO DOS DADOS PARA A TABELA
   // Resolve as FKs — mostra NOME em vez de ID
   // ==========================================
   const produtosComNomes = produtos.map((prod) => ({
     ...prod,
-    precoFormatado: `R$ ${prod.preco.toFixed(2)}`,
+    precoFormatado: `R$ ${Number(prod.preco).toFixed(2)}`,
     categoriaNome:
       categorias.find((c) => c.id === prod.categoriaId)?.nome || 'Sem categoria',
     usuarioNome:
@@ -197,7 +314,7 @@ const Products = () => {
   ];
 
   // ==========================================
-  // 1️⃣2️⃣ RENDER
+  // 1️⃣4️⃣ RENDER
   // ==========================================
   return (
     <div
@@ -207,6 +324,21 @@ const Products = () => {
       <h1 style={{ color: '#fff', marginBottom: '30px' }}>
         Gerenciamento de Produtos
       </h1>
+
+      {/* Aviso de modo offline */}
+      {aviso && (
+        <div style={{
+          background: 'rgba(197, 160, 89, 0.2)',
+          border: '1px solid var(--cevada-amber, #C5A059)',
+          borderRadius: '10px',
+          padding: '12px 20px',
+          marginBottom: '20px',
+          color: 'var(--cevada-amber, #C5A059)',
+          fontSize: '0.9em'
+        }}>
+          {aviso}
+        </div>
+      )}
 
       {/* ---- FORMULÁRIO DE CADASTRO / EDIÇÃO ---- */}
       <form
