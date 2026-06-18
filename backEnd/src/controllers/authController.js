@@ -35,10 +35,11 @@ exports.login = (req, res) => {
         }
     }
     
-    // Verificação oficial do ID Token do Firebase
+    // Verificação oficial do ID Token do Firebase (usando a variável do .env)
+    const projectId = process.env.FIREBASE_PROJECT_ID;
     jwt.verify(idToken, getKey, {
-        audience: 'projetoextensaoweb',
-        issuer: 'https://securetoken.google.com/projetoextensaoweb',
+        audience: projectId,
+        issuer: `https://securetoken.google.com/${projectId}`,
         algorithms: ['RS256']
     }, (err, decoded) => {
         if (err) {
