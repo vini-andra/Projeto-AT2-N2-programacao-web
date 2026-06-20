@@ -1,4 +1,5 @@
 // backend/src/controllers/authController.js
+const { fetchAll } = require('../services/dataService');
 const jwt = require('jsonwebtoken');
 const jwksClient = require('jwks-rsa');
 
@@ -18,7 +19,7 @@ function getKey(header, callback) {
 }
 
 exports.login = (req, res) => {
-    const { email, idToken } = req.body;
+    const { email, idToken, password } = req.body;
     
     if (!idToken) {
         return res.status(400).json({ success: false, message: 'Token de autenticação não fornecido' });
@@ -52,14 +53,30 @@ exports.login = (req, res) => {
             return res.status(401).json({ success: false, message: 'E-mail não corresponde ao token de autenticação' });
         }
         
-        // Retorna sucesso e dados do usuário verificados
-        return res.json({ 
-            success: true, 
-            user: { 
-                name: decoded.name || email.split('@')[0], 
-                email: decoded.email 
-            },
-            token: idToken 
+        // Buscar usuário no banco de dados para validar e pegar o tipo de conta
+        fetchAll('usuarios').then(usuarios => {
+            const dbUser = usuarios.find(u => u.email === email);
+            
+            if (!dbUser && email !== 'admin@email.com') {
+                return res.status(401).json({ success: false, message: 'Usuário não cadastrado no sistema.' });
+            }
+            
+            if (dbUser && dbUser.senha && password && dbUser.senha !== password) {
+                return res.status(401).json({ success: false, message: 'Senha incorreta conforme o banco de dados.' });
+            }
+            
+            // Retorna sucesso e dados do usuário verificados
+            return res.json({ 
+                success: true, 
+                user: { 
+                    name: dbUser ? dbUser.nome : (decoded.name || email.split('@')[0]), 
+                    email: decoded.email,
+                    role: dbUser ? (dbUser.tipoDeConta || dbUser.role || 'user') : 'admin'
+                },
+                token: idToken 
+            });
+        }).catch(err => {
+            return res.status(500).json({ success: false, message: 'Erro ao validar banco de dados' });
         });
     });
 };

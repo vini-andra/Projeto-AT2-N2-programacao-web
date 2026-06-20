@@ -130,7 +130,7 @@ export const AuthProvider = ({ children }) => {
       const idToken = await firebaseUser.getIdToken();
 
       // Call backend to authenticate/verify the Firebase ID token
-      const response = await loginUser(email, idToken);
+      const response = await loginUser(email, idToken, password);
       if (response.success) {
         setUser(response.user);
         localStorage.setItem('cevada_user', JSON.stringify(response.user));

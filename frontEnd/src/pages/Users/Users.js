@@ -28,6 +28,8 @@ const Users = () => {
   const [nome, setNome] = useState('');
   const [email, setEmail] = useState('');
   const [telefone, setTelefone] = useState('');
+  const [senha, setSenha] = useState('');
+  const [tipoDeConta, setTipoDeConta] = useState('user');
   const [editingId, setEditingId] = useState(null);
   const [errors, setErrors] = useState({});
   const [deleteModal, setDeleteModal] = useState({ open: false, item: null });
@@ -89,6 +91,8 @@ const Users = () => {
       errs.email = 'Formato de email inválido';
     }
     if (!telefone.trim()) errs.telefone = 'O telefone é obrigatório';
+    if (!senha.trim()) errs.senha = 'A senha é obrigatória';
+    if (!tipoDeConta.trim()) errs.tipoDeConta = 'O tipo de conta é obrigatório';
     setErrors(errs);
     return Object.keys(errs).length === 0;
   };
@@ -100,7 +104,7 @@ const Users = () => {
     e.preventDefault();
     if (!validate()) return;
 
-    const itemData = { nome: nome.trim(), email: email.trim(), telefone: telefone.trim() };
+    const itemData = { nome: nome.trim(), email: email.trim(), telefone: telefone.trim(), senha: senha.trim(), tipoDeConta: tipoDeConta.trim() };
 
     if (editingId) {
       // UPDATE
@@ -144,6 +148,8 @@ const Users = () => {
     setNome('');
     setEmail('');
     setTelefone('');
+    setSenha('');
+    setTipoDeConta('user');
     setErrors({});
   };
 
@@ -155,6 +161,8 @@ const Users = () => {
     setNome(item.nome);
     setEmail(item.email);
     setTelefone(item.telefone);
+    setSenha(item.senha || '');
+    setTipoDeConta(item.tipoDeConta || 'user');
   };
 
   const handleCancelEdit = () => {
@@ -162,6 +170,8 @@ const Users = () => {
     setNome('');
     setEmail('');
     setTelefone('');
+    setSenha('');
+    setTipoDeConta('user');
     setErrors({});
   };
 
@@ -196,6 +206,7 @@ const Users = () => {
     { header: 'Nome', accessor: 'nome' },
     { header: 'Email', accessor: 'email' },
     { header: 'Telefone', accessor: 'telefone' },
+    { header: 'Tipo', accessor: 'tipoDeConta' },
   ];
 
   // ==========================================
@@ -224,6 +235,15 @@ const Users = () => {
         <InputField label="Nome" value={nome} onChange={e => setNome(e.target.value)} error={errors.nome} name="nome" />
         <InputField label="Email" type="email" value={email} onChange={e => setEmail(e.target.value)} error={errors.email} name="email" />
         <InputField label="Telefone" value={telefone} onChange={e => setTelefone(e.target.value)} error={errors.telefone} name="telefone" />
+        <InputField label="Senha" type="password" value={senha} onChange={e => setSenha(e.target.value)} error={errors.senha} name="senha" />
+        
+        <div style={{ marginBottom: '15px' }}>
+          <label style={{ color: '#fff', display: 'block', marginBottom: '5px' }}>Tipo de Conta</label>
+          <select value={tipoDeConta} onChange={e => setTipoDeConta(e.target.value)} style={{ width: '100%', padding: '10px', borderRadius: '5px', background: 'rgba(255, 255, 255, 0.9)', border: 'none', outline: 'none' }}>
+            <option value="user">Usuário Comum</option>
+            <option value="admin">Administrador</option>
+          </select>
+        </div>
 
         <div style={{ display: 'flex', gap: '10px', marginTop: '20px' }}>
           <Button type="submit" variant="primary">
