@@ -51,6 +51,7 @@
       "id": "user1",
       "nome": "Administrador Cevada",
       "email": "admin@cevada.com",
+      "senha": "123456",
       "perfil": "Admin",
       "ativo": true
     },
@@ -58,6 +59,7 @@
       "id": "user2",
       "nome": "Operador Loja",
       "email": "operador@cevada.com",
+      "senha": "123456",
       "perfil": "Operador",
       "ativo": true
     }
