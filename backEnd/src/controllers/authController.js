@@ -1,5 +1,5 @@
 // backend/src/controllers/authController.js
-const { fetchAll } = require('../services/dataService');
+const { fetchAll, createItem } = require('../services/dataService');
 const jwt = require('jsonwebtoken');
 const jwksClient = require('jwks-rsa');
 
@@ -54,11 +54,31 @@ exports.login = (req, res) => {
         }
         
         // Buscar usuário no banco de dados para validar e pegar o tipo de conta
-        fetchAll('usuarios').then(usuarios => {
-            const dbUser = usuarios.find(u => u.email === email);
+        fetchAll('usuarios').then(async (usuarios) => {
+            let dbUser = usuarios.find(u => u.email === email);
             
+            // Cadastro automático para usuários do Google Login
             if (!dbUser && email !== 'admin@email.com') {
-                return res.status(401).json({ success: false, message: 'Usuário não cadastrado no sistema.' });
+                if (!password) {
+                    // Sem senha significa que é login via provider (ex: Google)
+                    try {
+                        const novoUsuario = {
+                            nome: decoded.name || email.split('@')[0],
+                            email: decoded.email,
+                            telefone: 'Não informado',
+                            tipoDeConta: 'user', // Nível de acesso padrão
+                            ativo: true
+                        };
+                        dbUser = await createItem('usuarios', novoUsuario);
+                        console.log(`[authController] Novo usuário registrado via Google: ${dbUser.email}`);
+                    } catch (createErr) {
+                        console.error('Erro ao registrar novo usuário via Google:', createErr);
+                        return res.status(500).json({ success: false, message: 'Erro ao cadastrar novo usuário.' });
+                    }
+                } else {
+                    // Se enviou senha, é login comum tentando acessar uma conta que não existe
+                    return res.status(401).json({ success: false, message: 'Usuário não cadastrado no sistema.' });
+                }
             }
             
             if (dbUser && dbUser.senha && password && dbUser.senha !== password) {

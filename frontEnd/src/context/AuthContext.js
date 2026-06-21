@@ -4,7 +4,9 @@ import {
   signInWithEmailAndPassword, 
   signOut, 
   onAuthStateChanged, 
-  createUserWithEmailAndPassword 
+  createUserWithEmailAndPassword,
+  GoogleAuthProvider,
+  signInWithPopup
 } from 'firebase/auth';
 import { loginUser } from '../services/api';
 
@@ -154,12 +156,38 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
+  const loginWithGoogle = async () => {
+    if (!isFirebaseConfigured) {
+      console.warn('🔓 Login MOCK: Google Login não é suportado no modo offline. Use qualquer e-mail/senha.');
+      return { success: false, message: 'Google Login indisponível no modo offline.' };
+    }
+
+    try {
+      const provider = new GoogleAuthProvider();
+      const result = await signInWithPopup(auth, provider);
+      const firebaseUser = result.user;
+      const idToken = await firebaseUser.getIdToken();
+
+      const response = await loginUser(firebaseUser.email, idToken);
+      if (response.success) {
+        setUser(response.user);
+        localStorage.setItem('cevada_user', JSON.stringify(response.user));
+        return { success: true };
+      } else {
+        return { success: false, message: response.message || 'Erro de autenticação no servidor backend.' };
+      }
+    } catch (error) {
+      console.error('Firebase Auth Google login error:', error);
+      return { success: false, message: 'Erro ao fazer login com o Google.' };
+    }
+  };
+
   const logout = () => {
     handleLogout();
   };
 
   return (
-    <AuthContext.Provider value={{ user, login, logout, loading }}>
+    <AuthContext.Provider value={{ user, login, loginWithGoogle, logout, loading }}>
       {!loading && children}
     </AuthContext.Provider>
   );

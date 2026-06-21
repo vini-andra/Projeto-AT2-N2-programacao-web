@@ -11,7 +11,7 @@ const Login = () => {
   const [generalError, setGeneralError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   
-  const { user, login } = useAuth();
+  const { user, login, loginWithGoogle } = useAuth();
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -56,6 +56,19 @@ const Login = () => {
       navigate('/dashboard');
     } else {
       setGeneralError(result.message || 'Erro ao entrar. Tente novamente.');
+    }
+  };
+
+  const handleGoogleLogin = async () => {
+    setGeneralError('');
+    setIsLoading(true);
+    const result = await loginWithGoogle();
+    setIsLoading(false);
+    
+    if (result.success) {
+      navigate('/dashboard');
+    } else {
+      setGeneralError(result.message || 'Erro ao entrar com Google. Tente novamente.');
     }
   };
 
@@ -132,6 +145,20 @@ const Login = () => {
             ) : (
               'Entrar'
             )}
+          </button>
+          
+          <div className="login-divider">
+            <span>ou</span>
+          </div>
+          
+          <button 
+            type="button" 
+            className="login-btn-google"
+            onClick={handleGoogleLogin}
+            disabled={isLoading}
+          >
+            <i className="fa-brands fa-google"></i>
+            Entrar com Google
           </button>
         </form>
       </div>
