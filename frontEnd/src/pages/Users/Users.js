@@ -15,7 +15,8 @@ import GenericTable from '../../components/common/GenericTable';
 import InputField from '../../components/common/InputField';
 import Button from '../../components/common/Button';
 import Modal from '../../components/common/Modal';
-import { apiGetAll, apiCreate, apiUpdate, apiDelete } from '../../services/api';
+import { apiCreate, apiUpdate, apiDelete } from '../../services/api';
+import { buscarComCache } from '../../services/cache';
 
 const STORAGE_KEY = 'cevada_usuarios';
 const ENTIDADE = 'usuarios';
@@ -41,29 +42,10 @@ const Users = () => {
   // ==========================================
   useEffect(() => {
     const carregarDados = async () => {
-      try {
-        // Tenta buscar do backend (Express → Firestore)
-        const response = await apiGetAll(ENTIDADE);
-        if (response.success) {
-          setUsuarios(response.data);
-          // Sincroniza localStorage como redundância
-          localStorage.setItem(STORAGE_KEY, JSON.stringify(response.data));
-          setAviso('');
-          console.log(`[Users] Dados carregados do Firebase via backend (${response.data.length} itens)`);
-        } else {
-          throw new Error(response.message);
-        }
-      } catch (error) {
-        // Fallback: carrega do localStorage
-        console.warn('[Users] Backend indisponível, usando localStorage como fallback:', error.message);
-        const saved = localStorage.getItem(STORAGE_KEY);
-        if (saved) {
-          setUsuarios(JSON.parse(saved));
-        }
-        setAviso('⚠️ Modo offline — dados carregados do cache local');
-      } finally {
-        setIsLoaded(true);
-      }
+      const { dados, doCache } = await buscarComCache(ENTIDADE);
+      setUsuarios(dados);
+      setAviso(doCache ? '⚠️ Modo offline — dados carregados do cache local' : '');
+      setIsLoaded(true);
     };
 
     carregarDados();
