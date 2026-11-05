@@ -42,6 +42,15 @@ describe('rotas de dados com token', () => {
         expect(res.body.success).toBe(true);
         expect(Array.isArray(res.body.data)).toBe(true);
     });
+
+    test('GET /api/usuarios não expõe a senha', async () => {
+        const res = await request(app)
+            .get('/api/usuarios')
+            .set('Authorization', `Bearer ${tokenValido}`);
+
+        expect(res.body.data.length).toBeGreaterThan(0);
+        res.body.data.forEach((usuario) => expect(usuario).not.toHaveProperty('senha'));
+    });
 });
 
 describe('POST /api/login', () => {

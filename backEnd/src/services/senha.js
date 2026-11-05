@@ -13,4 +13,7 @@ const criptografarSenha = async (senha) => {
 
 const conferirSenha = (senha, hash) => bcrypt.compare(String(senha), String(hash));
 
-module.exports = { jaCriptografada, criptografarSenha, conferirSenha };
+//nem o hash da senha sai do backend
+const semSenha = ({ senha, ...resto }) => resto;
+
+module.exports = { jaCriptografada, criptografarSenha, conferirSenha, semSenha };

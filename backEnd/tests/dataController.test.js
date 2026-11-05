@@ -61,6 +61,20 @@ describe('CRUD genérico', () => {
         expect(res.status).toHaveBeenCalledWith(400);
     });
 
+    test('getAll e update nunca devolvem a senha, nem em hash', async () => {
+        const ana = { id: 'u1', nome: 'Ana', senha: '$2a$10$hashqualquer' };
+        dataService.fetchAll.mockResolvedValue([ana]);
+        dataService.updateItem.mockResolvedValue(ana);
+
+        const lista = respostaFalsa();
+        await getAll('usuarios')({}, lista);
+        const atualizado = respostaFalsa();
+        await update('usuarios')({ params: { id: 'u1' }, body: { nome: 'Ana' } }, atualizado);
+
+        expect(lista.json).toHaveBeenCalledWith({ success: true, data: [{ id: 'u1', nome: 'Ana' }] });
+        expect(atualizado.json).toHaveBeenCalledWith({ success: true, data: { id: 'u1', nome: 'Ana' } });
+    });
+
     test('remove apaga o item pelo id', async () => {
         dataService.deleteItem.mockResolvedValue();
         const res = respostaFalsa();
