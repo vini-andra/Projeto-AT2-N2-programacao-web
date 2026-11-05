@@ -13,12 +13,25 @@
 // ============================================
 
 const BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000/api';
+const TOKEN_KEY = 'cevada_token';
+
+export const salvarToken = (token) => {
+  if (token) localStorage.setItem(TOKEN_KEY, token);
+  else localStorage.removeItem(TOKEN_KEY);
+};
+
+const cabecalhos = () => {
+  const token = localStorage.getItem(TOKEN_KEY);
+  const base = { 'Content-Type': 'application/json' };
+  return token ? { ...base, Authorization: `Bearer ${token}` } : base;
+};
 
 // ============================================
 // LOGIN — Envia credenciais ao backend para autenticação
 // @param {string} email — e-mail do usuário
 // @param {string} idToken — token do Firebase Auth
-// @returns {Object} — { success, user, message }
+// @returns {Object} — { success, user, token, message }
+// Se der certo, guarda o token para as próximas chamadas
 // ============================================
 export const loginUser = async (email, idToken, password) => {
   try {
@@ -27,10 +40,12 @@ export const loginUser = async (email, idToken, password) => {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ email, idToken, password }),
     });
-    return await response.json();
+    const resultado = await response.json();
+    if (resultado.success) salvarToken(resultado.token);
+    return resultado;
   } catch (error) {
     console.error('API Error:', error);
-    return { success: false, message: 'Erro ao conectar ao servidor' };
+    return { success: false, offline: true, message: 'Erro ao conectar ao servidor' };
   }
 };
 
@@ -50,7 +65,7 @@ export const loginUser = async (email, idToken, password) => {
  * @throws {Error} — se o backend estiver offline
  */
 export const apiGetAll = async (entidade) => {
-  const response = await fetch(`${BASE_URL}/${entidade}`);
+  const response = await fetch(`${BASE_URL}/${entidade}`, { headers: cabecalhos() });
   if (!response.ok) {
     throw new Error(`Erro HTTP ${response.status} ao buscar ${entidade}`);
   }
@@ -67,7 +82,7 @@ export const apiGetAll = async (entidade) => {
 export const apiCreate = async (entidade, item) => {
   const response = await fetch(`${BASE_URL}/${entidade}`, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+    headers: cabecalhos(),
     body: JSON.stringify(item),
   });
   if (!response.ok) {
@@ -87,7 +102,7 @@ export const apiCreate = async (entidade, item) => {
 export const apiUpdate = async (entidade, id, updatedFields) => {
   const response = await fetch(`${BASE_URL}/${entidade}/${id}`, {
     method: 'PUT',
-    headers: { 'Content-Type': 'application/json' },
+    headers: cabecalhos(),
     body: JSON.stringify(updatedFields),
   });
   if (!response.ok) {
@@ -106,6 +121,7 @@ export const apiUpdate = async (entidade, id, updatedFields) => {
 export const apiDelete = async (entidade, id) => {
   const response = await fetch(`${BASE_URL}/${entidade}/${id}`, {
     method: 'DELETE',
+    headers: cabecalhos(),
   });
   if (!response.ok) {
     throw new Error(`Erro HTTP ${response.status} ao deletar de ${entidade}`);
