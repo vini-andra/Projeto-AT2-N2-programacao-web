@@ -8,7 +8,7 @@ import {
   GoogleAuthProvider,
   signInWithPopup
 } from 'firebase/auth';
-import { loginUser, salvarToken } from '../services/api';
+import { loginUser, salvarToken, quandoSessaoExpirar } from '../services/api';
 
 const AuthContext = createContext();
 
@@ -36,6 +36,8 @@ export const AuthProvider = ({ children }) => {
   };
 
   useEffect(() => {
+    quandoSessaoExpirar(handleLogout);
+
     // 1. Instantly read from localStorage to avoid redirects on reload
     const savedUser = localStorage.getItem('cevada_user');
     if (savedUser) {

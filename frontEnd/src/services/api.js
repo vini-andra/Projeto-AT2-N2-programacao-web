@@ -26,6 +26,19 @@ const cabecalhos = () => {
   return token ? { ...base, Authorization: `Bearer ${token}` } : base;
 };
 
+let aoExpirarSessao = () => {};
+
+export const quandoSessaoExpirar = (callback) => {
+  aoExpirarSessao = callback;
+};
+
+//401 aqui é token vencido ou inválido, não servidor fora do ar
+const lerResposta = (response, acao) => {
+  if (response.status === 401) aoExpirarSessao();
+  if (!response.ok) throw new Error(`Erro HTTP ${response.status} ${acao}`);
+  return response.json();
+};
+
 // ============================================
 // LOGIN — Envia credenciais ao backend para autenticação
 // @param {string} email — e-mail do usuário
@@ -66,10 +79,7 @@ export const loginUser = async (email, idToken, password) => {
  */
 export const apiGetAll = async (entidade) => {
   const response = await fetch(`${BASE_URL}/${entidade}`, { headers: cabecalhos() });
-  if (!response.ok) {
-    throw new Error(`Erro HTTP ${response.status} ao buscar ${entidade}`);
-  }
-  return await response.json();
+  return lerResposta(response, `ao buscar ${entidade}`);
 };
 
 /**
@@ -85,10 +95,7 @@ export const apiCreate = async (entidade, item) => {
     headers: cabecalhos(),
     body: JSON.stringify(item),
   });
-  if (!response.ok) {
-    throw new Error(`Erro HTTP ${response.status} ao criar em ${entidade}`);
-  }
-  return await response.json();
+  return lerResposta(response, `ao criar em ${entidade}`);
 };
 
 /**
@@ -105,10 +112,7 @@ export const apiUpdate = async (entidade, id, updatedFields) => {
     headers: cabecalhos(),
     body: JSON.stringify(updatedFields),
   });
-  if (!response.ok) {
-    throw new Error(`Erro HTTP ${response.status} ao atualizar em ${entidade}`);
-  }
-  return await response.json();
+  return lerResposta(response, `ao atualizar em ${entidade}`);
 };
 
 /**
@@ -123,8 +127,5 @@ export const apiDelete = async (entidade, id) => {
     method: 'DELETE',
     headers: cabecalhos(),
   });
-  if (!response.ok) {
-    throw new Error(`Erro HTTP ${response.status} ao deletar de ${entidade}`);
-  }
-  return await response.json();
+  return lerResposta(response, `ao deletar de ${entidade}`);
 };
