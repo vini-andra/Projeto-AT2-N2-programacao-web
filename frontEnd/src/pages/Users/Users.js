@@ -73,7 +73,7 @@ const Users = () => {
       errs.email = 'Formato de email inválido';
     }
     if (!telefone.trim()) errs.telefone = 'O telefone é obrigatório';
-    if (!senha.trim()) errs.senha = 'A senha é obrigatória';
+    if (!editingId && !senha.trim()) errs.senha = 'A senha é obrigatória';
     if (!tipoDeConta.trim()) errs.tipoDeConta = 'O tipo de conta é obrigatório';
     setErrors(errs);
     return Object.keys(errs).length === 0;
@@ -86,12 +86,14 @@ const Users = () => {
     e.preventDefault();
     if (!validate()) return;
 
-    const itemData = { nome: nome.trim(), email: email.trim(), telefone: telefone.trim(), senha: senha.trim(), tipoDeConta: tipoDeConta.trim() };
+    const itemData = { nome: nome.trim(), email: email.trim(), telefone: telefone.trim(), tipoDeConta: tipoDeConta.trim() };
+    //a senha só vai para o backend, nunca para o estado da tela ou o localStorage
+    const corpo = senha.trim() ? { ...itemData, senha: senha.trim() } : itemData;
 
     if (editingId) {
       // UPDATE
       try {
-        const response = await apiUpdate(ENTIDADE, editingId, itemData);
+        const response = await apiUpdate(ENTIDADE, editingId, corpo);
         if (response.success) {
           setUsuarios(usuarios.map(u =>
             u.id === editingId ? { ...u, ...itemData } : u
@@ -111,7 +113,7 @@ const Users = () => {
     } else {
       // CREATE
       try {
-        const response = await apiCreate(ENTIDADE, itemData);
+        const response = await apiCreate(ENTIDADE, corpo);
         if (response.success) {
           setUsuarios([...usuarios, response.data]);
           setAviso('');
@@ -143,7 +145,7 @@ const Users = () => {
     setNome(item.nome);
     setEmail(item.email);
     setTelefone(item.telefone);
-    setSenha(item.senha || '');
+    setSenha('');
     setTipoDeConta(item.tipoDeConta || 'user');
   };
 
@@ -217,7 +219,7 @@ const Users = () => {
         <InputField label="Nome" value={nome} onChange={e => setNome(e.target.value)} error={errors.nome} name="nome" />
         <InputField label="Email" type="email" value={email} onChange={e => setEmail(e.target.value)} error={errors.email} name="email" />
         <InputField label="Telefone" value={telefone} onChange={e => setTelefone(e.target.value)} error={errors.telefone} name="telefone" />
-        <InputField label="Senha" type="password" value={senha} onChange={e => setSenha(e.target.value)} error={errors.senha} name="senha" />
+        <InputField label="Senha" type="password" value={senha} onChange={e => setSenha(e.target.value)} error={errors.senha} name="senha" placeholder={editingId ? 'Em branco mantém a senha atual' : ''} />
         
         <div style={{ marginBottom: '15px' }}>
           <label style={{ color: '#fff', display: 'block', marginBottom: '5px' }}>Tipo de Conta</label>
