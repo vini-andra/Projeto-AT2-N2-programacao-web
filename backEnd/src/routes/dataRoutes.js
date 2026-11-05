@@ -15,6 +15,8 @@
 const express = require('express');
 const router = express.Router();
 const { getAll, create, update, remove } = require('../controllers/dataController');
+const exigirToken = require('../middlewares/exigirToken');
+const protegerSenha = require('../middlewares/protegerSenha');
 
 // ============================================
 // Entidades do sistema — cada uma mapeia para uma coleção no Firestore
@@ -30,12 +32,15 @@ const entidades = ['usuarios', 'categorias', 'produtos'];
 //   PUT    /api/usuarios/:id   → dataController.update('usuarios')
 //   DELETE /api/usuarios/:id   → dataController.remove('usuarios')
 //   ... (repetido para categorias e produtos)
+//
+// Todas exigem token (exigirToken). Em POST e PUT, se o body
+// trouxer "senha", ela é salva como hash (protegerSenha).
 // ============================================
 entidades.forEach((entidade) => {
-    router.get(`/${entidade}`, getAll(entidade));
-    router.post(`/${entidade}`, create(entidade));
-    router.put(`/${entidade}/:id`, update(entidade));
-    router.delete(`/${entidade}/:id`, remove(entidade));
+    router.get(`/${entidade}`, exigirToken, getAll(entidade));
+    router.post(`/${entidade}`, exigirToken, protegerSenha, create(entidade));
+    router.put(`/${entidade}/:id`, exigirToken, protegerSenha, update(entidade));
+    router.delete(`/${entidade}/:id`, exigirToken, remove(entidade));
 });
 
 module.exports = router;

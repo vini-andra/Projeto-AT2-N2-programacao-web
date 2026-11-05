@@ -6,6 +6,7 @@
 
 const fs = require('fs');
 const path = require('path');
+const { jaCriptografada, criptografarSenha } = require('../services/senha');
 
 const seedDatabase = async () => {
     try {
@@ -59,6 +60,18 @@ const seedDatabase = async () => {
     }
 };
 
+//usuários gravados antes do hash ainda guardam a senha em texto puro
+const migrarSenhas = async () => {
+    const { fetchAll, updateItem } = require('../services/dataService');
+    const usuarios = await fetchAll('usuarios');
+
+    for (const usuario of usuarios) {
+        if (usuario.senha && !jaCriptografada(usuario.senha)) {
+            await updateItem('usuarios', usuario.id, { senha: await criptografarSenha(usuario.senha) });
+        }
+    }
+};
+
 const connectDB = async () => {
     try {
         // Importa o firebaseConfig para garantir que o Firebase é inicializado
@@ -69,6 +82,7 @@ const connectDB = async () => {
             console.log("✅ Firebase Firestore conectado com sucesso.");
             // Executa o seed automático se necessário
             await seedDatabase();
+            await migrarSenhas();
         } else {
             console.warn("⚠️ Firebase Firestore não foi inicializado. Verifique o .env");
         }

@@ -21,94 +21,9 @@
 
 import React, { useState, useEffect, useMemo } from 'react';
 import GenericTable from '../../components/common/GenericTable';
-import { apiGetAll } from '../../services/api';
+import { buscarComCache } from '../../services/cache';
+import { realizarJoin, aplicarFiltros, calcularEstatisticas } from './relatorio';
 import './Reports.css';
-
-// ============================================
-// CHAVES DO LOCALSTORAGE — Redundância/cache
-// ============================================
-const PRODUTOS_KEY = 'cevada_produtos';
-const CATEGORIAS_KEY = 'cevada_categorias';
-const USUARIOS_KEY = 'cevada_usuarios';
-
-// ============================================
-// FUNÇÕES AUXILIARES DE DADOS
-// Separam a lógica de dados da lógica de renderização
-// ============================================
-
-/**
- * resolverNomeCategoria — Resolve o nome da categoria a partir do categoriaId
- * Simula: SELECT categorias.nome FROM categorias WHERE categorias.id = produto.categoriaId
- *
- * @param {string} categoriaId — FK do produto
- * @param {Array} categorias — lista completa de categorias
- * @returns {string} — nome da categoria ou fallback
- */
-const resolverNomeCategoria = (categoriaId, categorias) => {
-  const categoriaEncontrada = categorias.find((cat) => cat.id === categoriaId);
-  return categoriaEncontrada ? categoriaEncontrada.nome : 'Categoria não encontrada';
-};
-
-/**
- * resolverNomeUsuario — Resolve o nome do usuário a partir do usuarioId
- * Simula: SELECT usuarios.nome FROM usuarios WHERE usuarios.id = produto.usuarioId
- *
- * @param {string} usuarioId — FK do produto
- * @param {Array} usuarios — lista completa de usuários
- * @returns {string} — nome do usuário ou fallback
- */
-const resolverNomeUsuario = (usuarioId, usuarios) => {
-  const usuarioEncontrado = usuarios.find((user) => user.id === usuarioId);
-  return usuarioEncontrado ? usuarioEncontrado.nome : 'Usuário não encontrado';
-};
-
-/**
- * realizarJoin — Combina produtos com categorias e usuários
- *
- * Equivalente SQL:
- *   SELECT p.nome, p.preco, c.nome AS categoria, u.nome AS cadastradoPor
- *   FROM produtos p
- *   LEFT JOIN categorias c ON p.categoriaId = c.id
- *   LEFT JOIN usuarios u ON p.usuarioId = u.id
- *
- * @param {Array} produtos — lista de produtos
- * @param {Array} categorias — lista de categorias
- * @param {Array} usuarios — lista de usuários
- * @returns {Array} — lista de produtos com nomes resolvidos
- */
-const realizarJoin = (produtos, categorias, usuarios) => {
-  return produtos.map((produto) => ({
-    id: produto.id,
-    nome: produto.nome,
-    preco: produto.preco,
-    precoFormatado: `R$ ${Number(produto.preco).toFixed(2)}`,
-    categoria: resolverNomeCategoria(produto.categoriaId, categorias),
-    categoriaId: produto.categoriaId,
-    cadastradoPor: resolverNomeUsuario(produto.usuarioId, usuarios),
-  }));
-};
-
-/**
- * aplicarFiltros — Filtra os dados do relatório por categoria e faixa de preço
- *
- * @param {Array} dados — dados já com JOIN realizado
- * @param {string} filtroCategoria — id da categoria selecionada ('' = todas)
- * @param {number} precoMin — preço mínimo do filtro
- * @param {number} precoMax — preço máximo do filtro
- * @returns {Array} — dados filtrados
- */
-const aplicarFiltros = (dados, filtroCategoria, precoMin, precoMax) => {
-  return dados.filter((item) => {
-    // Filtro por categoria
-    const passaCategoria = !filtroCategoria || item.categoriaId === filtroCategoria;
-
-    // Filtro por faixa de preço
-    const passaPrecoMin = !precoMin || item.preco >= parseFloat(precoMin);
-    const passaPrecoMax = !precoMax || item.preco <= parseFloat(precoMax);
-
-    return passaCategoria && passaPrecoMin && passaPrecoMax;
-  });
-};
 
 // ============================================
 // COMPONENTE PRINCIPAL — Reports
@@ -134,57 +49,17 @@ const Reports = () => {
   // ============================================
   useEffect(() => {
     const carregarDados = async () => {
-      let usouFallback = false;
+      const [prods, cats, users] = await Promise.all([
+        buscarComCache('produtos'),
+        buscarComCache('categorias'),
+        buscarComCache('usuarios'),
+      ]);
 
-      // --- Produtos ---
-      try {
-        const response = await apiGetAll('produtos');
-        if (response.success) {
-          setProdutos(response.data);
-          localStorage.setItem(PRODUTOS_KEY, JSON.stringify(response.data));
-        } else {
-          throw new Error(response.message);
-        }
-      } catch (error) {
-        console.warn('[Reports] Usando produtos do localStorage:', error.message);
-        const saved = localStorage.getItem(PRODUTOS_KEY);
-        if (saved) setProdutos(JSON.parse(saved));
-        usouFallback = true;
-      }
+      setProdutos(prods.dados);
+      setCategorias(cats.dados);
+      setUsuarios(users.dados);
 
-      // --- Categorias ---
-      try {
-        const response = await apiGetAll('categorias');
-        if (response.success) {
-          setCategorias(response.data);
-          localStorage.setItem(CATEGORIAS_KEY, JSON.stringify(response.data));
-        } else {
-          throw new Error(response.message);
-        }
-      } catch (error) {
-        console.warn('[Reports] Usando categorias do localStorage:', error.message);
-        const saved = localStorage.getItem(CATEGORIAS_KEY);
-        if (saved) setCategorias(JSON.parse(saved));
-        usouFallback = true;
-      }
-
-      // --- Usuários ---
-      try {
-        const response = await apiGetAll('usuarios');
-        if (response.success) {
-          setUsuarios(response.data);
-          localStorage.setItem(USUARIOS_KEY, JSON.stringify(response.data));
-        } else {
-          throw new Error(response.message);
-        }
-      } catch (error) {
-        console.warn('[Reports] Usando usuários do localStorage:', error.message);
-        const saved = localStorage.getItem(USUARIOS_KEY);
-        if (saved) setUsuarios(JSON.parse(saved));
-        usouFallback = true;
-      }
-
-      if (usouFallback) {
+      if (prods.doCache || cats.doCache || users.doCache) {
         setAviso('⚠️ Alguns dados foram carregados do cache local (backend indisponível)');
       }
     };
@@ -215,19 +90,7 @@ const Reports = () => {
   };
 
   // ---- Calcular estatísticas do relatório ----
-  const estatisticas = useMemo(() => {
-    if (dadosFiltrados.length === 0) {
-      return { total: 0, media: 0, maior: 0, menor: 0 };
-    }
-
-    const precos = dadosFiltrados.map((item) => item.preco);
-    return {
-      total: dadosFiltrados.length,
-      media: (precos.reduce((acc, p) => acc + p, 0) / precos.length).toFixed(2),
-      maior: Math.max(...precos).toFixed(2),
-      menor: Math.min(...precos).toFixed(2),
-    };
-  }, [dadosFiltrados]);
+  const estatisticas = useMemo(() => calcularEstatisticas(dadosFiltrados), [dadosFiltrados]);
 
   // ---- Colunas da tabela do relatório ----
   const colunas = [

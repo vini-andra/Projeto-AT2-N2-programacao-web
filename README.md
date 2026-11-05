@@ -1,5 +1,7 @@
 # 🍺 Cevada — Sistema de Gerenciamento
 
+[![CI](https://github.com/vini-andra/Projeto-AT2-N2-programacao-web/actions/workflows/ci.yml/badge.svg)](https://github.com/vini-andra/Projeto-AT2-N2-programacao-web/actions/workflows/ci.yml)
+
 Aplicação React para gerenciamento de produtos, categorias e usuários da cervejaria **Cevada**.
 
 Projeto desenvolvido para a disciplina de Programação Web — AT2 N2.
@@ -74,8 +76,13 @@ FIREBASE_STORAGE_BUCKET=
 FIREBASE_MESSAGING_SENDER_ID=
 FIREBASE_APP_ID=1:123456789:web:
 FIREBASE_MEASUREMENT_ID=
+JWT_SECRET=um-texto-longo-e-aleatorio
 PORT=5000
 ```
+
+> **JWT_SECRET** assina os tokens de acesso da API. Se ficar vazio, o servidor gera um segredo novo a cada start (e todos precisam logar de novo).
+>
+> Sem as chaves do Firebase o backend também funciona: ele usa o `mock_db.json` como banco.
 
 ### 4. Configurar o Frontend
 
@@ -100,7 +107,10 @@ REACT_APP_FIREBASE_STORAGE_BUCKET=
 REACT_APP_FIREBASE_MESSAGING_SENDER_ID=
 REACT_APP_FIREBASE_APP_ID=1:123456789:
 REACT_APP_FIREBASE_MEASUREMENT_ID=
+REACT_APP_API_URL=http://localhost:5000/api
 ```
+
+> **REACT_APP_API_URL** é o endereço do backend. Se não for informado, o padrão é `http://localhost:5000/api`.
 *(Dica: sempre que você alterar o arquivo `.env` do frontend, é necessário parar o terminal e rodar `npm start` novamente).*
 
 ### 5. Rodar a aplicação
@@ -125,14 +135,51 @@ O frontend abrirá automaticamente em: **http://localhost:3000**
 
 ---
 
+## 🧪 Testes
+
+```bash
+cd backEnd
+npm test                # Jest + supertest
+npm run test:coverage   # com relatório de cobertura
+
+cd ../frontEnd
+npm test                # Jest + React Testing Library (modo watch)
+npm run test:coverage   # roda uma vez, com cobertura
+```
+
+Os testes do backend não precisam de Firebase nem de `.env`: usam o `mock_db.json` e nunca gravam nele.
+
+A cada `push` e `pull request` o GitHub Actions ([.github/workflows/ci.yml](.github/workflows/ci.yml)) instala as dependências, roda o ESLint, os testes dos dois lados e o build do frontend.
+
+---
+
+## 🔌 Endpoints da API
+
+Base: `http://localhost:5000/api`
+
+| Método | Rota | Autenticação | Descrição |
+|--------|------|--------------|-----------|
+| POST | `/login` | — | Recebe `{ email, password }` ou `{ email, idToken }` (Firebase) e devolve `{ user, token }` |
+| GET | `/usuarios`, `/categorias`, `/produtos` | Bearer | Lista os itens |
+| POST | `/usuarios`, `/categorias`, `/produtos` | Bearer | Cria um item |
+| PUT | `/usuarios/:id`, `/categorias/:id`, `/produtos/:id` | Bearer | Atualiza um item |
+| DELETE | `/usuarios/:id`, `/categorias/:id`, `/produtos/:id` | Bearer | Remove um item |
+
+As rotas de dados exigem o cabeçalho `Authorization: Bearer <token>`, com o token devolvido pelo `/login`. Sem ele, respondem `401`.
+
+Senhas enviadas em `POST`/`PUT` são gravadas como hash bcrypt, nunca em texto puro.
+
+---
+
 ## 🔑 Credenciais de Teste
 
-| Campo | Valor |
-|-------|-------|
-| E-mail | `admin@email.com` |
-| Senha | `1234` |
+| E-mail | Senha | Perfil |
+|--------|-------|--------|
+| `admin@email.com` | `1234` | admin |
+| `admin@cevada.com` | `123456` | — |
+| `operador@cevada.com` | `123456` | — |
 
-> **Nota:** Na primeira tentativa de login, o sistema cria automaticamente o usuário no Firebase Auth.
+> **Nota:** esses usuários vêm do `mock_db.json`, que também popula o Firestore quando ele está vazio. Com o Firebase configurado, o usuário precisa existir na coleção `usuarios` para logar com e-mail e senha.
 
 ---
 
@@ -155,15 +202,19 @@ Projeto-AT2-N2-programacao-web/
 │       │   ├── Products/      # CRUD de Produtos
 │       │   └── Reports/       # Relatório com JOIN
 │       ├── routes/            # Configuração de rotas + ProtectedRoute
-│       ├── services/          # Firebase config + API service
+│       ├── services/          # Firebase config + API service + cache local
 │       └── styles/            # CSS global e tema Cevada
 ├── backEnd/
-│   ├── index.js               # Servidor Express
+│   ├── index.js               # Sobe o servidor Express
+│   ├── tests/                 # Testes Jest
 │   └── src/
+│       ├── app.js             # Rotas e middlewares do Express
 │       ├── config/            # Configuração do banco
 │       ├── controllers/       # Controladores da API
+│       ├── middlewares/       # exigirToken (JWT) e protegerSenha (bcrypt)
 │       ├── routes/            # Rotas do backend
-│       └── services/          # Firebase config + Data service
+│       └── services/          # Firebase, dados, senha e token
+├── .github/workflows/ci.yml   # Pipeline de CI
 └── README.md
 ```
 

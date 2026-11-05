@@ -13,6 +13,7 @@
 // ============================================
 
 const { fetchAll, createItem, updateItem, deleteItem } = require('../services/dataService');
+const { semSenha } = require('../services/senha');
 
 // ============================================
 // GET ALL — Lista todos os itens de uma coleção
@@ -24,7 +25,7 @@ const getAll = (collectionName) => {
     return async (req, res) => {
         try {
             const data = await fetchAll(collectionName);
-            return res.json({ success: true, data });
+            return res.json({ success: true, data: data.map(semSenha) });
         } catch (error) {
             console.error(`[dataController] Erro ao buscar ${collectionName}:`, error.message);
             return res.status(500).json({ 
@@ -56,7 +57,7 @@ const create = (collectionName) => {
             }
 
             const newItem = await createItem(collectionName, item);
-            return res.status(201).json({ success: true, data: newItem });
+            return res.status(201).json({ success: true, data: semSenha(newItem) });
         } catch (error) {
             console.error(`[dataController] Erro ao criar em ${collectionName}:`, error.message);
             return res.status(500).json({ 
@@ -96,7 +97,7 @@ const update = (collectionName) => {
             }
 
             const result = await updateItem(collectionName, id, updatedFields);
-            return res.json({ success: true, data: result });
+            return res.json({ success: true, data: semSenha(result) });
         } catch (error) {
             console.error(`[dataController] Erro ao atualizar em ${collectionName}:`, error.message);
             return res.status(500).json({ 

@@ -20,12 +20,11 @@ import GenericTable from '../../components/common/GenericTable';
 import InputField from '../../components/common/InputField';
 import Button from '../../components/common/Button';
 import Modal from '../../components/common/Modal';
-import { apiGetAll, apiCreate, apiUpdate, apiDelete } from '../../services/api';
+import { apiCreate, apiUpdate, apiDelete } from '../../services/api';
+import { buscarComCache } from '../../services/cache';
 
-// Chaves do localStorage — COMBINADO DO GRUPO
+// Chave do localStorage — COMBINADO DO GRUPO
 const STORAGE_KEY = 'cevada_produtos';
-const CATEGORIAS_KEY = 'cevada_categorias';
-const USUARIOS_KEY = 'cevada_usuarios';
 
 const ENTIDADE = 'produtos';
 
@@ -64,54 +63,17 @@ const Products = () => {
   // ==========================================
   useEffect(() => {
     const carregarDados = async () => {
-      // --- Carregar Produtos ---
-      try {
-        const response = await apiGetAll(ENTIDADE);
-        if (response.success) {
-          setProdutos(response.data);
-          localStorage.setItem(STORAGE_KEY, JSON.stringify(response.data));
-          console.log(`[Products] Produtos carregados do Firebase via backend (${response.data.length} itens)`);
-        } else {
-          throw new Error(response.message);
-        }
-      } catch (error) {
-        console.warn('[Products] Backend indisponível para produtos, usando localStorage:', error.message);
-        const saved = localStorage.getItem(STORAGE_KEY);
-        if (saved) setProdutos(JSON.parse(saved));
-        setAviso('⚠️ Modo offline — dados carregados do cache local');
-      }
+      const [prods, cats, users] = await Promise.all([
+        buscarComCache(ENTIDADE),
+        buscarComCache('categorias'),
+        buscarComCache('usuarios'),
+      ]);
 
-      // --- Carregar Categorias (para os selects) ---
-      try {
-        const response = await apiGetAll('categorias');
-        if (response.success) {
-          setCategorias(response.data);
-          localStorage.setItem(CATEGORIAS_KEY, JSON.stringify(response.data));
-        } else {
-          throw new Error(response.message);
-        }
-      } catch (error) {
-        console.warn('[Products] Usando categorias do localStorage:', error.message);
-        const saved = localStorage.getItem(CATEGORIAS_KEY);
-        if (saved) setCategorias(JSON.parse(saved));
-      }
-
-      // --- Carregar Usuários (para os selects) ---
-      try {
-        const response = await apiGetAll('usuarios');
-        if (response.success) {
-          setUsuarios(response.data);
-          localStorage.setItem(USUARIOS_KEY, JSON.stringify(response.data));
-        } else {
-          throw new Error(response.message);
-        }
-      } catch (error) {
-        console.warn('[Products] Usando usuários do localStorage:', error.message);
-        const saved = localStorage.getItem(USUARIOS_KEY);
-        if (saved) setUsuarios(JSON.parse(saved));
-      } finally {
-        setIsLoaded(true);
-      }
+      setProdutos(prods.dados);
+      setCategorias(cats.dados);
+      setUsuarios(users.dados);
+      if (prods.doCache) setAviso('⚠️ Modo offline — dados carregados do cache local');
+      setIsLoaded(true);
     };
 
     carregarDados();
@@ -131,26 +93,12 @@ const Products = () => {
   // Tenta backend primeiro, cai no localStorage se falhar
   // ==========================================
   const carregarDadosExternos = async () => {
-    try {
-      const [catRes, userRes] = await Promise.all([
-        apiGetAll('categorias'),
-        apiGetAll('usuarios'),
-      ]);
-      if (catRes.success) {
-        setCategorias(catRes.data);
-        localStorage.setItem(CATEGORIAS_KEY, JSON.stringify(catRes.data));
-      }
-      if (userRes.success) {
-        setUsuarios(userRes.data);
-        localStorage.setItem(USUARIOS_KEY, JSON.stringify(userRes.data));
-      }
-    } catch (error) {
-      // Fallback silencioso para localStorage
-      const cats = localStorage.getItem(CATEGORIAS_KEY);
-      const users = localStorage.getItem(USUARIOS_KEY);
-      if (cats) setCategorias(JSON.parse(cats));
-      if (users) setUsuarios(JSON.parse(users));
-    }
+    const [cats, users] = await Promise.all([
+      buscarComCache('categorias'),
+      buscarComCache('usuarios'),
+    ]);
+    setCategorias(cats.dados);
+    setUsuarios(users.dados);
   };
 
   // ==========================================

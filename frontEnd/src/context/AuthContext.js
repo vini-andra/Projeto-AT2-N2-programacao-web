@@ -8,7 +8,7 @@ import {
   GoogleAuthProvider,
   signInWithPopup
 } from 'firebase/auth';
-import { loginUser } from '../services/api';
+import { loginUser, salvarToken, quandoSessaoExpirar } from '../services/api';
 
 const AuthContext = createContext();
 
@@ -32,9 +32,12 @@ export const AuthProvider = ({ children }) => {
     }
     setUser(null);
     localStorage.removeItem('cevada_user');
+    salvarToken(null);
   };
 
   useEffect(() => {
+    quandoSessaoExpirar(handleLogout);
+
     // 1. Instantly read from localStorage to avoid redirects on reload
     const savedUser = localStorage.getItem('cevada_user');
     if (savedUser) {
@@ -48,7 +51,7 @@ export const AuthProvider = ({ children }) => {
     if (!isFirebaseConfigured) {
       console.warn(
         '⚠️ Firebase não configurado (.env ausente ou REACT_APP_FIREBASE_API_KEY vazio).\n' +
-        '   Rodando em MODO MOCK — qualquer e-mail/senha será aceito para teste.'
+        '   O login será feito direto no backend; se ele estiver fora do ar, entra em MODO MOCK.'
       );
       setLoading(false);
       return; // sem cleanup necessário
@@ -76,6 +79,7 @@ export const AuthProvider = ({ children }) => {
       } else {
         setUser(null);
         localStorage.removeItem('cevada_user');
+        salvarToken(null);
       }
       setLoading(false);
     });
@@ -85,9 +89,21 @@ export const AuthProvider = ({ children }) => {
 
   const login = async (email, password) => {
     // ============================================
-    // MODO MOCK: aceita qualquer credencial
+    // SEM FIREBASE: o backend confere e-mail e senha no banco.
+    // Só se o backend estiver fora do ar entra no modo MOCK,
+    // que aceita qualquer credencial e trabalha com o cache local.
     // ============================================
     if (!isFirebaseConfigured) {
+      const response = await loginUser(email, null, password);
+      if (response.success) {
+        setUser(response.user);
+        localStorage.setItem('cevada_user', JSON.stringify(response.user));
+        return { success: true };
+      }
+      if (!response.offline) {
+        return { success: false, message: response.message || 'E-mail ou senha incorretos.' };
+      }
+
       console.warn('🔓 Login MOCK: autenticando como', email);
       const mockUser = {
         id: 'mock-user-1',

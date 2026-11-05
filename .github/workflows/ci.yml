@@ -1,0 +1,45 @@
+name: CI
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  backend:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: backEnd
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: backEnd/package-lock.json
+      - run: npm ci
+      - name: Testes com cobertura
+        run: npm run test:coverage
+
+  frontend:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: frontEnd
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: frontEnd/package-lock.json
+      - run: npm ci
+      - name: Análise estática (ESLint)
+        run: npx eslint src
+      - name: Testes com cobertura
+        run: npm run test:coverage
+      - name: Build
+        run: npm run build
+        env:
+          #com CI=true o react-scripts trata warning como erro, e o lint já roda no passo acima
+          CI: false

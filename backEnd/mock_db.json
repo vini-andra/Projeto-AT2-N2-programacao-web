@@ -51,7 +51,7 @@
       "id": "user1",
       "nome": "Administrador Cevada",
       "email": "admin@cevada.com",
-      "senha": "123456",
+      "senha": "$2a$10$0Ro.F5RxF1Qo5gs2/jkFmea7MbXrkoO2ct25aNCwK1TKX5mNmW/M6",
       "perfil": "Admin",
       "ativo": true
     },
@@ -59,8 +59,16 @@
       "id": "user2",
       "nome": "Operador Loja",
       "email": "operador@cevada.com",
-      "senha": "123456",
+      "senha": "$2a$10$9tkelaEJNA78KMusaxpYd.CssnPsBHr1MONLRsiuzAm94qA6SNMla",
       "perfil": "Operador",
+      "ativo": true
+    },
+    {
+      "id": "user3",
+      "nome": "Admin",
+      "email": "admin@email.com",
+      "senha": "$2a$10$zI06KTR1mZXti3LqDacDmucck7Ab9YijRRacldXIa5Ps1HbXZxAom",
+      "tipoDeConta": "admin",
       "ativo": true
     }
   ],
@@ -68,7 +76,7 @@
     {
       "id": "rel1",
       "titulo": "Vendas Janeiro 2026",
-      "totalVendido": 1500.50,
+      "totalVendido": 1500.5,
       "data": "2026-01-31"
     }
   ]

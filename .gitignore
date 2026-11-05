@@ -1,0 +1,27 @@
+#dependências
+node_modules/
+
+#variáveis de ambiente (nunca subir chaves)
+.env
+.env.local
+.env.*.local
+
+#gerados por build e testes
+build/
+coverage/
+
+#logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+#sistema
+.DS_Store
+Thumbs.db
+
+#claude e plugins
+.claude/
+.claude-flow/
+CLAUDE.md
+CLAUDE.local.md
+
